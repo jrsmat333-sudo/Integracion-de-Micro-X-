@@ -26,3 +26,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Billing.DataAccess.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Billing.DataAccess.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataAccess\obj\Debug\net10.0\ref\Microservicios.Atracciones.Billing.DataAccess.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Billing.DataAccess.sourcelink.json

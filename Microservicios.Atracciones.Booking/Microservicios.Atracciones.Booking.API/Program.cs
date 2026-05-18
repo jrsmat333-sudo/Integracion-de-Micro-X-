@@ -15,6 +15,19 @@ builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddDataManagementServices();
 builder.Services.AddBusinessServices();
 
+builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient>(o =>
+{
+    // Apuntamos al puerto donde corre Catalog.API
+    o.Address = new Uri("http://localhost:5012");
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    // Habilitar HTTP/2 sin TLS para comunicación gRPC local
+    var handler = new SocketsHttpHandler();
+    handler.EnableMultipleHttp2Connections = true;
+    return handler;
+});
+
 builder.Services.AddControllers(options => 
 {
     options.Filters.Add<Microservicios.Atracciones.Booking.API.Filters.ApiResponseWrapperFilter>();

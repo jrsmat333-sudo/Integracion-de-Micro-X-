@@ -28,3 +28,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataManagement\obj\Debug\net10.0\refint\Microservicios.Atracciones.Billing.DataManagement.dll
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataManagement\obj\Debug\net10.0\Microservicios.Atracciones.Billing.DataManagement.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataManagement\obj\Debug\net10.0\ref\Microservicios.Atracciones.Billing.DataManagement.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.DataManagement\obj\Debug\net10.0\Microservicios.Atracciones.Billing.DataManagement.sourcelink.json

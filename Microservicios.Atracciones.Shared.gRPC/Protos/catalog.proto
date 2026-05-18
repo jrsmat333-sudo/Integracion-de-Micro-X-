@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "Microservicios.Atracciones.Shared.gRPC";
+
+package catalog;
+
+// El servicio gRPC que será implementado en Catalog.API y consumido por Booking.API
+service CatalogService {
+  // RPC para validar una reserva: se envían los IDs de atracción, producto y categorías de precio
+  rpc ValidateBookingData (ValidateBookingRequest) returns (ValidateBookingResponse);
+}
+
+// Request: Lo que Booking envía a Catalog
+message ValidateBookingRequest {
+  string attraction_id = 1;
+  string product_option_id = 2;
+  repeated string price_tier_ids = 3; // Lista de IDs de las categorías de precio seleccionadas
+}
+
+// Response: Lo que Catalog devuelve a Booking
+message ValidateBookingResponse {
+  bool is_valid = 1;
+  string error_message = 2; // Si is_valid es falso, este campo explicará por qué
+
+  string attraction_name = 3; // Nombre oficial de la atracción
+  string product_title = 4;   // Título oficial de la opción
+  string currency_code = 5;   // Moneda oficial (ej. USD)
+  
+  repeated PriceTierResponse price_tiers = 6;
+}
+
+message PriceTierResponse {
+  string price_tier_id = 1;
+  string label = 2; // Ej. "Adulto", "Niño"
+  double price = 3; // Precio real en la base de datos (se usa double porque gRPC no soporta decimal nativo de forma sencilla)
+}

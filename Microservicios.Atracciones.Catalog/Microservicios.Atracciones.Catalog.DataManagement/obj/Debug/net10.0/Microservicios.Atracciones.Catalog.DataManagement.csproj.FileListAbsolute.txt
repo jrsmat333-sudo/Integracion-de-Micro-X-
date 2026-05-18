@@ -28,3 +28,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.C
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.DataManagement\obj\Debug\net10.0\refint\Microservicios.Atracciones.Catalog.DataManagement.dll
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.DataManagement\obj\Debug\net10.0\Microservicios.Atracciones.Catalog.DataManagement.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.DataManagement\obj\Debug\net10.0\ref\Microservicios.Atracciones.Catalog.DataManagement.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.DataManagement\obj\Debug\net10.0\Microservicios.Atracciones.Catalog.DataManagement.sourcelink.json

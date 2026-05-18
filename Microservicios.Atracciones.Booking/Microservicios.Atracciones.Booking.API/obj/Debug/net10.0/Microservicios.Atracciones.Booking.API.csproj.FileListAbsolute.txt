@@ -209,3 +209,13 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\obj\Debug\net10.0\Microservicios.Atracciones.Booking.API.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\obj\Debug\net10.0\Microservicios.Atracciones.Booking.API.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\obj\Debug\net10.0\ref\Microservicios.Atracciones.Booking.API.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Google.Protobuf.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Grpc.AspNetCore.Server.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Grpc.AspNetCore.Server.ClientFactory.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Grpc.Core.Api.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Grpc.Net.Client.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Grpc.Net.ClientFactory.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Grpc.Net.Common.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Microservicios.Atracciones.Shared.gRPC.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\bin\Debug\net10.0\Microservicios.Atracciones.Shared.gRPC.pdb
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.API\obj\Debug\net10.0\Microservicios.Atracciones.Booking.API.sourcelink.json

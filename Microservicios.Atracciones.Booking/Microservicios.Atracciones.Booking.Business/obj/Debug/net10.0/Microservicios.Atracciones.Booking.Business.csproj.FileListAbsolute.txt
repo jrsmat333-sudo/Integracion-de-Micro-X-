@@ -70,3 +70,6 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.Business\obj\Debug\net10.0\refint\Microservicios.Atracciones.Booking.Business.dll
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.Business\obj\Debug\net10.0\Microservicios.Atracciones.Booking.Business.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.Business\obj\Debug\net10.0\ref\Microservicios.Atracciones.Booking.Business.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.Business\bin\Debug\net10.0\Microservicios.Atracciones.Shared.gRPC.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.Business\bin\Debug\net10.0\Microservicios.Atracciones.Shared.gRPC.pdb
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.Business\obj\Debug\net10.0\Microservicios.Atracciones.Booking.Business.sourcelink.json

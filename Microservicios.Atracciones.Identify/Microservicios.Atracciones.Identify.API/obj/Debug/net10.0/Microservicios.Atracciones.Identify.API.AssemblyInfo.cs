@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Microservicios.Atracciones.Identify.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9653262015258ddcf32435e7776c49ec7e7c1179")]
 [assembly: System.Reflection.AssemblyProductAttribute("Microservicios.Atracciones.Identify.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Microservicios.Atracciones.Identify.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

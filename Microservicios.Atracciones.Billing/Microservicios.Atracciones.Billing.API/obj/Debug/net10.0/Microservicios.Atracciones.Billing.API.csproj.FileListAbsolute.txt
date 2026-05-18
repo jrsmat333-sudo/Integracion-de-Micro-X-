@@ -209,3 +209,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.API\obj\Debug\net10.0\Microservicios.Atracciones.Billing.API.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.API\obj\Debug\net10.0\Microservicios.Atracciones.Billing.API.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.API\obj\Debug\net10.0\ref\Microservicios.Atracciones.Billing.API.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.API\obj\Debug\net10.0\Microservicios.Atracciones.Billing.API.sourcelink.json

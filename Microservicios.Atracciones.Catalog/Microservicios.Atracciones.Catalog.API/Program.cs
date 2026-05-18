@@ -40,6 +40,7 @@ builder.Services.AddEndpointsApiExplorer();
 // ======================================================
 // 3. SWAGGER CON SEGURIDAD JWT
 // ======================================================
+builder.Services.AddGrpc();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Catalog Microservice API", Version = "v1" });
@@ -131,6 +132,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGrpcService<Microservicios.Atracciones.Catalog.API.Grpc.CatalogGrpcService>();
 
 app.Run();
 

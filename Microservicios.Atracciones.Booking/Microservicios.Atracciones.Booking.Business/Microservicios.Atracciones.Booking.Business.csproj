@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microservicios.Atracciones.Booking.DataManagement\Microservicios.Atracciones.Booking.DataManagement.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.gRPC\Microservicios.Atracciones.Shared.gRPC.csproj" />
   </ItemGroup>
 
 </Project>

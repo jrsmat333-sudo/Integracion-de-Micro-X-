@@ -14,17 +14,20 @@ public class BookingService : IBookingService
     private readonly IInventoryDataService _inventoryData;
     private readonly IValidator<CreateBookingRequest> _createValidator;
     private readonly IValidator<CancelBookingRequest> _cancelValidator;
+    private readonly Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient _catalogClient;
 
     public BookingService(
         IBookingDataService bookingData,
         IInventoryDataService inventoryData,
         IValidator<CreateBookingRequest> createValidator,
-        IValidator<CancelBookingRequest> cancelValidator)
+        IValidator<CancelBookingRequest> cancelValidator,
+        Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient catalogClient)
     {
         _bookingData = bookingData;
         _inventoryData = inventoryData;
         _createValidator = createValidator;
         _cancelValidator = cancelValidator;
+        _catalogClient = catalogClient;
     }
 
     public async Task<BookingConfirmationResponse> CreateBookingAsync(Guid userId, CreateBookingRequest request)
@@ -44,15 +47,33 @@ public class BookingService : IBookingService
         if (slot.CapacityAvailable < totalPassengers)
             throw new BusinessException($"No hay suficiente disponibilidad. Disponible: {slot.CapacityAvailable}, Solicitado: {totalPassengers}.");
 
-        // En el microservicio desacoplado, la validación de PriceTiers y el cálculo de precios
-        // debería hacerse consultando al servicio de Catálogo (vía gRPC o caché) o 
-        // confiando en los datos del frontend si hay una validación posterior.
-        // Por ahora, asumimos que los precios vienen en el request o los simplificamos.
-        
-        // TODO: Implementar llamada a Catálogo Microservice para validar precios y nombres.
-        
-        decimal totalAmount = request.Passengers.Sum(p => p.UnitPrice * p.Quantity);
-        string currencyCode = "USD"; // Debería venir del Catálogo
+        // Llamada gRPC a Catálogo Microservice para validar precios y nombres
+        var grpcRequest = new Microservicios.Atracciones.Shared.gRPC.ValidateBookingRequest
+        {
+            AttractionId = request.AttractionId.ToString(),
+            ProductOptionId = slot.ProductId.ToString()
+        };
+        grpcRequest.PriceTierIds.AddRange(request.Passengers.Select(p => p.PriceTierId.ToString()).Distinct());
+
+        var grpcResponse = await _catalogClient.ValidateBookingDataAsync(grpcRequest);
+        if (!grpcResponse.IsValid)
+            throw new BusinessException($"Error validando datos en Catálogo: {grpcResponse.ErrorMessage}");
+
+        request.AttractionName = grpcResponse.AttractionName;
+        request.ProductTitle = grpcResponse.ProductTitle;
+        string currencyCode = grpcResponse.CurrencyCode;
+        decimal totalAmount = 0;
+
+        foreach (var p in request.Passengers)
+        {
+            var officialTier = grpcResponse.PriceTiers.FirstOrDefault(t => t.PriceTierId == p.PriceTierId.ToString());
+            if (officialTier == null)
+                throw new BusinessException($"La categoría de precio {p.PriceTierId} ya no está disponible.");
+
+            p.PriceTierLabel = officialTier.Label;
+            p.UnitPrice = (decimal)officialTier.Price; // Sobrescribimos el precio del request con el oficial de gRPC
+            totalAmount += p.UnitPrice * p.Quantity;
+        }
 
         var bookingNode = new BookingNode
         {

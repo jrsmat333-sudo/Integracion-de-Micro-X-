@@ -30,3 +30,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.G
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Gateway.API\obj\Debug\net10.0\Microservicios.Atracciones.Gateway.API.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Gateway.API\obj\Debug\net10.0\Microservicios.Atracciones.Gateway.API.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Gateway.API\obj\Debug\net10.0\ref\Microservicios.Atracciones.Gateway.API.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Gateway.API\obj\Debug\net10.0\Microservicios.Atracciones.Gateway.API.sourcelink.json

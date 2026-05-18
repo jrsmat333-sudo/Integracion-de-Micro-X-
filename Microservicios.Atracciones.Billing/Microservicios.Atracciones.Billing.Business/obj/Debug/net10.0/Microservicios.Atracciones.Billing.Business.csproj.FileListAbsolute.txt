@@ -66,3 +66,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.Business\obj\Debug\net10.0\refint\Microservicios.Atracciones.Billing.Business.dll
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.Business\obj\Debug\net10.0\Microservicios.Atracciones.Billing.Business.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.Business\obj\Debug\net10.0\ref\Microservicios.Atracciones.Billing.Business.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Billing\Microservicios.Atracciones.Billing.Business\obj\Debug\net10.0\Microservicios.Atracciones.Billing.Business.sourcelink.json

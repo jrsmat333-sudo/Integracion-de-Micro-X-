@@ -26,3 +26,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.I
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Identify\Microservicios.Atracciones.Identify.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Identify.DataAccess.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Identify\Microservicios.Atracciones.Identify.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Identify.DataAccess.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Identify\Microservicios.Atracciones.Identify.DataAccess\obj\Debug\net10.0\ref\Microservicios.Atracciones.Identify.DataAccess.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Identify\Microservicios.Atracciones.Identify.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Identify.DataAccess.sourcelink.json

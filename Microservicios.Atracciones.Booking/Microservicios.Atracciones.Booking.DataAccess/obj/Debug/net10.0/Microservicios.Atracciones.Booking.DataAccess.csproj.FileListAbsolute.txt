@@ -26,3 +26,4 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.B
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Booking.DataAccess.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Booking.DataAccess.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.DataAccess\obj\Debug\net10.0\ref\Microservicios.Atracciones.Booking.DataAccess.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Booking\Microservicios.Atracciones.Booking.DataAccess\obj\Debug\net10.0\Microservicios.Atracciones.Booking.DataAccess.sourcelink.json

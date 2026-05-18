@@ -293,3 +293,13 @@ C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.C
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\obj\Debug\net10.0\Microservicios.Atracciones.Catalog.API.pdb
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\obj\Debug\net10.0\Microservicios.Atracciones.Catalog.API.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\obj\Debug\net10.0\ref\Microservicios.Atracciones.Catalog.API.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\obj\Debug\net10.0\Microservicios.Atracciones.Catalog.API.sourcelink.json
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Google.Protobuf.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Grpc.AspNetCore.Server.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Grpc.AspNetCore.Server.ClientFactory.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Grpc.Core.Api.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Grpc.Net.Client.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Grpc.Net.ClientFactory.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Grpc.Net.Common.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Microservicios.Atracciones.Shared.gRPC.dll
+C:\Users\USUARIO\Desktop\Microservicios.Atracciones\Microservicios.Atracciones.Catalog\Microservicios.Atracciones.Catalog.API\bin\Debug\net10.0\Microservicios.Atracciones.Shared.gRPC.pdb

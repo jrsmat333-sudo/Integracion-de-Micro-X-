@@ -73,10 +73,8 @@ Este documento detalla el plan de acción paso a paso para abordar el proyecto h
 
 ---
 
-## Fase 5: Evolución de Arquitectura y gRPC (Día 4 en adelante)
+## Fase 5: Evolución de Arquitectura y gRPC 
 *Objetivo: Mejorar la comunicación interna (Backend-a-Backend).*
-
-> **¿Por qué esto va al final?** Porque gRPC cambia la forma en que los servicios se hablan entre sí. Si intentas hacer esto en el Día 1 y algo falla, no sabrás si falló tu código, falló la BD de Supabase, o falló la configuración del proyecto heredado. Haciéndolo en la Fase 5, sabes que todo el sistema ya es estable.
 
 1. **Identificar Cuellos de Botella o Dependencias:**
    - Analiza qué microservicio necesita datos urgentes de otro. Por ejemplo, al crear un `Booking`, necesitas verificar que la `Atraccion` exista en el `Catalog`.

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,6 +23,7 @@
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.Business\Microservicios.Atracciones.Catalog.Business.csproj" />
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.DataManagement\Microservicios.Atracciones.Catalog.DataManagement.csproj" />
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.DataAccess\Microservicios.Atracciones.Catalog.DataAccess.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.gRPC\Microservicios.Atracciones.Shared.gRPC.csproj" />
   </ItemGroup>
 
 </Project>
