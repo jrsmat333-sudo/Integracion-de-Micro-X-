@@ -1,0 +1,232 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Microservicios.Atracciones.Catalog.Business/1.0.0": {
+        "dependencies": {
+          "BCrypt.Net-Next": "4.2.0",
+          "FluentValidation": "12.1.1",
+          "Microservicios.Atracciones.Catalog.DataAccess": "1.0.0",
+          "Microservicios.Atracciones.Catalog.DataManagement": "1.0.0"
+        },
+        "runtime": {
+          "Microservicios.Atracciones.Catalog.Business.dll": {}
+        }
+      },
+      "BCrypt.Net-Next/4.2.0": {
+        "runtime": {
+          "lib/net10.0/BCrypt-Net-Next.dll": {
+            "assemblyVersion": "4.2.0.0",
+            "fileVersion": "4.2.0.0"
+          }
+        }
+      },
+      "FluentValidation/12.1.1": {
+        "runtime": {
+          "lib/net8.0/FluentValidation.dll": {
+            "assemblyVersion": "12.0.0.0",
+            "fileVersion": "12.1.1.0"
+          }
+        }
+      },
+      "Mapster/10.0.7": {
+        "dependencies": {
+          "Mapster.Core": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Mapster.dll": {
+            "assemblyVersion": "10.0.7.0",
+            "fileVersion": "10.0.7.0"
+          }
+        }
+      },
+      "Mapster.Core/10.0.7": {
+        "runtime": {
+          "lib/netstandard2.0/Mapster.Core.dll": {
+            "assemblyVersion": "10.0.7.0",
+            "fileVersion": "10.0.7.0"
+          }
+        }
+      },
+      "Mapster.DependencyInjection/10.0.7": {
+        "dependencies": {
+          "Mapster": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Mapster.DependencyInjection.dll": {
+            "assemblyVersion": "10.0.7.0",
+            "fileVersion": "10.0.7.0"
+          }
+        }
+      },
+      "Microsoft.EntityFrameworkCore/10.0.8": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Abstractions": "10.0.8"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.EntityFrameworkCore.dll": {
+            "assemblyVersion": "10.0.8.0",
+            "fileVersion": "10.0.826.23019"
+          }
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Abstractions/10.0.8": {
+        "runtime": {
+          "lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
+            "assemblyVersion": "10.0.8.0",
+            "fileVersion": "10.0.826.23019"
+          }
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Relational/10.0.8": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.8"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.EntityFrameworkCore.Relational.dll": {
+            "assemblyVersion": "10.0.8.0",
+            "fileVersion": "10.0.826.23019"
+          }
+        }
+      },
+      "Npgsql/10.0.2": {
+        "runtime": {
+          "lib/net10.0/Npgsql.dll": {
+            "assemblyVersion": "10.0.2.0",
+            "fileVersion": "10.0.2.0"
+          }
+        }
+      },
+      "Npgsql.EntityFrameworkCore.PostgreSQL/10.0.1": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.8",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.8",
+          "Npgsql": "10.0.2"
+        },
+        "runtime": {
+          "lib/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {
+            "assemblyVersion": "10.0.1.0",
+            "fileVersion": "10.0.1.0"
+          }
+        }
+      },
+      "Microservicios.Atracciones.Catalog.DataAccess/1.0.0": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.8",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.8",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1"
+        },
+        "runtime": {
+          "Microservicios.Atracciones.Catalog.DataAccess.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Microservicios.Atracciones.Catalog.DataManagement/1.0.0": {
+        "dependencies": {
+          "Mapster": "10.0.7",
+          "Mapster.DependencyInjection": "10.0.7",
+          "Microservicios.Atracciones.Catalog.DataAccess": "1.0.0"
+        },
+        "runtime": {
+          "Microservicios.Atracciones.Catalog.DataManagement.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microservicios.Atracciones.Catalog.Business/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BCrypt.Net-Next/4.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA==",
+      "path": "bcrypt.net-next/4.2.0",
+      "hashPath": "bcrypt.net-next.4.2.0.nupkg.sha512"
+    },
+    "FluentValidation/12.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw==",
+      "path": "fluentvalidation/12.1.1",
+      "hashPath": "fluentvalidation.12.1.1.nupkg.sha512"
+    },
+    "Mapster/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bZgWXyTM21Bc6Xrvk2BzPCFTwnvyTNSO4fUli/DVm02Kya80r5sY9ackpsECVlUqbda7ck9hr/1oKrCyI8yXmw==",
+      "path": "mapster/10.0.7",
+      "hashPath": "mapster.10.0.7.nupkg.sha512"
+    },
+    "Mapster.Core/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-73Bd0aZ+t6DoG3X4FYDfOyVgvLxgUXJKIjrps3W1n7MR03DIWI+sL62VqQSPwuJdn7WJb8HYhkH/BNZ6ZlJydw==",
+      "path": "mapster.core/10.0.7",
+      "hashPath": "mapster.core.10.0.7.nupkg.sha512"
+    },
+    "Mapster.DependencyInjection/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jTLPkEH3Iii0N/dwyvpPhBPf1CdV3M4W6j8vkoLtoPZoE+LC403wBgzO8wnOZzZv+ih0l6NyVc3oNzCNxfH5vQ==",
+      "path": "mapster.dependencyinjection/10.0.7",
+      "hashPath": "mapster.dependencyinjection.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore/10.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-EJx+fIBMgBlgD+ublKCn+GTOJkw3UqV7xOjYWBRVdUYyIm8UfvAsmSOPFiIInsWTHyMEYUJ9gCJY1jwX+6UB7w==",
+      "path": "microsoft.entityframeworkcore/10.0.8",
+      "hashPath": "microsoft.entityframeworkcore.10.0.8.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore.Abstractions/10.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jbKDXWPZQhuPHygMnwzNOqxBADVcpRVytcKYZsA++QqhPkpF93Ta8o5mbJQGrARSjlkr9WtOaADV97EDMOZ7DA==",
+      "path": "microsoft.entityframeworkcore.abstractions/10.0.8",
+      "hashPath": "microsoft.entityframeworkcore.abstractions.10.0.8.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore.Relational/10.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UU3diAD2wwZveye2rnrwaF/wvJ9tm5iL2fuY9TTap6/iGQK1OO29M1BzXZRlRPVH/dByt5w/pISBSFtyR7hTqw==",
+      "path": "microsoft.entityframeworkcore.relational/10.0.8",
+      "hashPath": "microsoft.entityframeworkcore.relational.10.0.8.nupkg.sha512"
+    },
+    "Npgsql/10.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-q5RfBI+wywJSFUNDE1L4ZbHEHCFTblo8Uf6A6oe4feOUFYiUQXyAf9GBh5qEZpvJaHiEbpBPkQumjEhXCJxdrg==",
+      "path": "npgsql/10.0.2",
+      "hashPath": "npgsql.10.0.2.nupkg.sha512"
+    },
+    "Npgsql.EntityFrameworkCore.PostgreSQL/10.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-P6EwH0Q4xkaA264iNZDqCPhWt8pscfUGxXazDQg4noBfqjoOlk4hKWfvBjF9ZX3R/9JybRmmJfmxr2iBMj0EpA==",
+      "path": "npgsql.entityframeworkcore.postgresql/10.0.1",
+      "hashPath": "npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512"
+    },
+    "Microservicios.Atracciones.Catalog.DataAccess/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microservicios.Atracciones.Catalog.DataManagement/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

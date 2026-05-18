@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="Microservicios.Atracciones.Identify.API/Microservicios.Atracciones.Identify.API.csproj" />
+    <Project Path="Microservicios.Atracciones.Identify.Business/Microservicios.Atracciones.Identify.Business.csproj" />
+    <Project Path="Microservicios.Atracciones.Identify.DataAccess/Microservicios.Atracciones.Identify.DataAccess.csproj" />
+    <Project Path="Microservicios.Atracciones.Identify.DataManagement/Microservicios.Atracciones.Identify.DataManagement.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+</Solution>

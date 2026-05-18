@@ -1,0 +1,3931 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Catalog Microservice API",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/v1/catalog/attraction": {
+      "get": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LocationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CategorySlug",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SubcategoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "TagId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "LanguageId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "MinRating",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "DifficultyLevel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "DifficultyLevels",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TagIds",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LanguageIds",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MinPrice",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "MaxPrice",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Attraction"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateAttractionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateAttractionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateAttractionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/management": {
+      "get": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LocationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CategorySlug",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SubcategoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "TagId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "LanguageId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "MinRating",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "DifficultyLevel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "DifficultyLevels",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TagIds",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LanguageIds",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MinPrice",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "MaxPrice",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/complete": {
+      "post": {
+        "tags": [
+          "Attraction"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateCompleteAttractionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateCompleteAttractionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateCompleteAttractionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/top": {
+      "get": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/{slug}": {
+      "get": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestedLangId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionDetailResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionDetailResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/{id}": {
+      "put": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.UpdateAttractionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.UpdateAttractionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.UpdateAttractionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/{id}/status": {
+      "patch": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionStatusRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionStatusRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/{id}/active": {
+      "patch": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionActiveRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionActiveRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionActiveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/attraction/{id}/complete": {
+      "get": {
+        "tags": [
+          "Attraction"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionFullEditionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionFullEditionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionFullEditionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/category": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/category/{id}": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/category/subcategory": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/category/{categoryId}/subcategory": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/category/subcategory/{id}": {
+      "put": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/inclusion": {
+      "get": {
+        "tags": [
+          "Inclusion"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Inclusion"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/inclusion/{id}": {
+      "get": {
+        "tags": [
+          "Inclusion"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Inclusion"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Inclusion"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/itinerary/attraction/{attractionId}": {
+      "get": {
+        "tags": [
+          "Itinerary"
+        ],
+        "parameters": [
+          {
+            "name": "attractionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ItineraryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ItineraryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ItineraryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Itinerary"
+        ],
+        "parameters": [
+          {
+            "name": "attractionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateItineraryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateItineraryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateItineraryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/itinerary/{itineraryId}/stop": {
+      "post": {
+        "tags": [
+          "Itinerary"
+        ],
+        "parameters": [
+          {
+            "name": "itineraryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateTourStopRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateTourStopRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateTourStopRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/itinerary/{id}": {
+      "delete": {
+        "tags": [
+          "Itinerary"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/itinerary/stop/{id}": {
+      "delete": {
+        "tags": [
+          "Itinerary"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/language": {
+      "get": {
+        "tags": [
+          "Language"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.LanguageResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.LanguageResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.LanguageResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/location": {
+      "get": {
+        "tags": [
+          "Location"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Location"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/location/{id}": {
+      "get": {
+        "tags": [
+          "Location"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Location"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Location"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/media/upload": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/productoption/by-attraction/{attractionId}": {
+      "get": {
+        "tags": [
+          "ProductOption"
+        ],
+        "parameters": [
+          {
+            "name": "attractionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/productoption/{id}": {
+      "get": {
+        "tags": [
+          "ProductOption"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ProductOption"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.UpdateProductOptionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.UpdateProductOptionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.UpdateProductOptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ProductOption"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/productoption": {
+      "post": {
+        "tags": [
+          "ProductOption"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.CreateProductOptionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.CreateProductOptionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.CreateProductOptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/productoption/{id}/toggle": {
+      "patch": {
+        "tags": [
+          "ProductOption"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "boolean"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "boolean"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/tag": {
+      "get": {
+        "tags": [
+          "Tag"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tag"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/tag/{id}": {
+      "get": {
+        "tags": [
+          "Tag"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tag"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tag"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/ticketcategory": {
+      "get": {
+        "tags": [
+          "TicketCategory"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TicketCategory"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/ticketcategory/{id}": {
+      "get": {
+        "tags": [
+          "TicketCategory"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TicketCategory"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TicketCategory"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "nullable": true
+          },
+          "ratingAverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "ratingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minAge": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingPoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "locationCountryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "subcategoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "gallery": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.MediaResponse"
+            },
+            "nullable": true
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductResponse"
+            },
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+            },
+            "nullable": true
+          },
+          "inclusions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+            },
+            "nullable": true
+          },
+          "guideLanguages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.GuideLanguageResponse"
+            },
+            "nullable": true
+          },
+          "itinerary": {
+            "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ItineraryResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionFullEditionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "nullable": true
+          },
+          "ratingAverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "ratingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minAge": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingPoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "locationCountryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "subcategoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "gallery": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.MediaResponse"
+            },
+            "nullable": true
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductResponse"
+            },
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse"
+            },
+            "nullable": true
+          },
+          "inclusions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse"
+            },
+            "nullable": true
+          },
+          "guideLanguages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.GuideLanguageResponse"
+            },
+            "nullable": true
+          },
+          "itinerary": {
+            "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ItineraryResponse"
+          },
+          "countryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPublished": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionGuideLanguageRequest": {
+        "type": "object",
+        "properties": {
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "guideType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionInclusionRequest": {
+        "type": "object",
+        "properties": {
+          "inclusionItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionMediaRequest": {
+        "type": "object",
+        "properties": {
+          "mediaTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "isMain": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "locationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "locationCountryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "subcategoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "ratingAverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "ratingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "nullable": true
+          },
+          "mainImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "startingPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "currencyCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "modalityCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionTranslationRequest": {
+        "type": "object",
+        "properties": {
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingPoint": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CompleteItineraryRequest": {
+        "type": "object",
+        "properties": {
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overview": {
+            "type": "string",
+            "nullable": true
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CompleteTourStopRequest"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CompleteTourStopRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "stayTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "stopNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "admissionType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateAttractionRequest": {
+        "required": [
+          "locationId",
+          "name",
+          "subcategoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subcategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "meetingPoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateCompleteAttractionRequest": {
+        "required": [
+          "locationId",
+          "name",
+          "subcategoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subcategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "meetingPoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "nullable": true
+          },
+          "translations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionTranslationRequest"
+            },
+            "nullable": true
+          },
+          "guideLanguages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionGuideLanguageRequest"
+            },
+            "nullable": true
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionMediaRequest"
+            },
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "inclusions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionInclusionRequest"
+            },
+            "nullable": true
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ProductOptionRequest"
+            },
+            "nullable": true
+          },
+          "itinerary": {
+            "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CompleteItineraryRequest"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateItineraryRequest": {
+        "type": "object",
+        "properties": {
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalDistanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalDurationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.CreateTourStopRequest": {
+        "type": "object",
+        "properties": {
+          "stopNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "admissionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.GuideLanguageResponse": {
+        "type": "object",
+        "properties": {
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "guideType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.InclusionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inclusionItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "defaultText": {
+            "type": "string",
+            "nullable": true
+          },
+          "iconSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ItineraryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalDistanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalDurationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TourStopResponse"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.MediaResponse": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "isMain": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.PriceTierRequest": {
+        "type": "object",
+        "properties": {
+          "ticketCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "currencyCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ProductOptionRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "durationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelPolicyHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelPolicyText": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "minParticipants": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "priceTiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.PriceTierRequest"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TagResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionActiveRequest": {
+        "required": [
+          "isActive"
+        ],
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionStatusRequest": {
+        "required": [
+          "isPublished"
+        ],
+        "type": "object",
+        "properties": {
+          "isPublished": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.TourStopResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stopNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "admissionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.UpdateAttractionRequest": {
+        "required": [
+          "locationId",
+          "name",
+          "subcategoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subcategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "descriptionShort": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionFull": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "meetingPoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Category.CategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "subcategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateCategoryRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Category.CreateSubcategoryRequest": {
+        "required": [
+          "categoryId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Category.SubcategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.CreatePriceTierRequest": {
+        "type": "object",
+        "properties": {
+          "ticketCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "currencyCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.CreateProductOptionRequest": {
+        "type": "object",
+        "properties": {
+          "attractionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "durationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelPolicyHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelPolicyText": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "minParticipants": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "priceTiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.CreatePriceTierRequest"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.PriceTierResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticketCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "currencyCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductOptionDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "durationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelPolicyHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelPolicyText": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "minParticipants": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "priceTiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.PriceTierResponse"
+            },
+            "nullable": true
+          },
+          "attractionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.ProductResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "durationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelPolicyHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelPolicyText": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "minParticipants": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "priceTiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.PriceTierResponse"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Inventory.UpdateProductOptionRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "durationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelPolicyHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelPolicyText": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "minParticipants": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateInclusionRequest": {
+        "type": "object",
+        "properties": {
+          "defaultText": {
+            "type": "string",
+            "nullable": true
+          },
+          "iconSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "languageId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTagRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Master.CreateTicketCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "nameEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "ageRangeMin": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ageRangeMax": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Master.LanguageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isoCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.DTOs.Master.TicketCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "nameEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "ageRangeMin": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ageRangeMax": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.Business.Interfaces.CreateLocationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.DataAccess.Common.PagedResult`1[[Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse, Microservicios.Atracciones.Catalog.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionSummaryResponse"
+            },
+            "nullable": true
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Microservicios.Atracciones.Catalog.DataManagement.Models.LocationNode"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Ingresa tu token JWT en el formato: Bearer {tu_token_aqui}",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}
