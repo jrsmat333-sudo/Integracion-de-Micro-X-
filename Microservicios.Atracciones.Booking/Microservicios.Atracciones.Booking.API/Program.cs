@@ -17,15 +17,9 @@ builder.Services.AddBusinessServices();
 
 builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient>(o =>
 {
-    // Apuntamos al puerto donde corre Catalog.API
-    o.Address = new Uri("http://localhost:5012");
-})
-.ConfigurePrimaryHttpMessageHandler(() =>
-{
-    // Habilitar HTTP/2 sin TLS para comunicación gRPC local
-    var handler = new SocketsHttpHandler();
-    handler.EnableMultipleHttp2Connections = true;
-    return handler;
+    // Apuntamos a la URL de Catalog.API segura (HTTPS) en la nube o local con certificado
+    var catalogUrl = builder.Configuration["GrpcServices:CatalogAddress"] ?? "https://localhost:5002";
+    o.Address = new Uri(catalogUrl);
 });
 
 builder.Services.AddControllers(options => 
