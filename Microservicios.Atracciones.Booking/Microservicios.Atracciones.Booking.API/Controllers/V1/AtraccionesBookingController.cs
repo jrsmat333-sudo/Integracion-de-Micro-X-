@@ -56,6 +56,19 @@ public class AtraccionesBookingController : ControllerBase
     }
 
     /// <summary>
+    /// Consultar disponibilidad agrupada por fechas
+    /// </summary>
+    [HttpGet("disponibilidad")]
+    [AllowAnonymous] // Usualmente la disponibilidad es pública
+    public async Task<ActionResult<ApiResponse<List<DisponibilidadDiariaDto>>>> ConsultarDisponibilidad(
+        [FromQuery] Guid attractionId, 
+        [FromQuery] DateOnly? fecha = null)
+    {
+        var result = await _bookingService.ObtenerDisponibilidadAsync(attractionId, fecha);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Lista el historial de reservas del usuario autenticado.
     /// </summary>
     [HttpGet("mis-reservas")]
