@@ -1,0 +1,45 @@
+name: Build & Push Identify Service
+
+# Se ejecuta cuando hay un push a main que toque archivos del microservicio Identify
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Microservicios.Atracciones.Identify/**'
+      - '.github/workflows/build-identify.yml'
+  workflow_dispatch: # Permite ejecutar manualmente desde GitHub
+
+env:
+  IMAGE_NAME: identify-api
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clonar el repositorio completo (necesario para acceder a todas las capas)
+      - name: Checkout código fuente
+        uses: actions/checkout@v4
+
+      # 2. Autenticarse contra Azure Container Registry usando los secretos configurados
+      - name: Login a Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # 3. Construir la imagen Docker desde la raíz del proyecto (contexto = raíz)
+      - name: Build imagen Docker
+        run: |
+          docker build \
+            -f Microservicios.Atracciones.Identify/Microservicios.Atracciones.Identify.API/Dockerfile \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
+            .
+
+      # 4. Subir la imagen al registro de contenedores en Azure
+      - name: Push imagen a ACR
+        run: |
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
