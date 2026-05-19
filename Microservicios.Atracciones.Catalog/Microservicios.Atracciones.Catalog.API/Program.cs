@@ -27,8 +27,6 @@ builder.Services.AddBusinessServices();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<Microservicios.Atracciones.Catalog.API.Filters.ApiResponseWrapperFilter>();
-    // Prefijo global
-    options.Conventions.Add(new RoutePrefixConvention("api/v1/catalog"));
 })
 .AddJsonOptions(options =>
 {
@@ -135,30 +133,6 @@ app.MapControllers();
 app.MapGrpcService<Microservicios.Atracciones.Catalog.API.Grpc.CatalogGrpcService>();
 
 app.Run();
-
-public class RoutePrefixConvention : Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelConvention
-{
-    private readonly string _prefix;
-    public RoutePrefixConvention(string prefix) => _prefix = prefix;
-
-    public void Apply(Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModel application)
-    {
-        foreach (var controller in application.Controllers)
-        {
-            foreach (var selector in controller.Selectors)
-            {
-                if (selector.AttributeRouteModel != null)
-                {
-                    var currentTemplate = selector.AttributeRouteModel.Template;
-                    if (currentTemplate != null && currentTemplate.StartsWith("api/v1/"))
-                    {
-                        selector.AttributeRouteModel.Template = currentTemplate.Replace("api/v1/", _prefix + "/");
-                    }
-                }
-            }
-        }
-    }
-}
 
 
 
