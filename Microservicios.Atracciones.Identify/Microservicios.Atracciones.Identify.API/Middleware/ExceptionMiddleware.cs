@@ -52,7 +52,7 @@ public class ExceptionMiddleware
                 break;
 
             case UnauthorizedBusinessException unauthEx:
-                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 response.Message = unauthEx.Message;
                 break;
 

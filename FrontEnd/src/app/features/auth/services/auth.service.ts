@@ -2,10 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { TokenService } from '../../../core/services/token.service';
-import { LoginRequest, RegisterRequest, LoginResponse } from '../../../shared/models/auth.model';
-import { ApiResponse } from '../../../shared/models/pagination.model';
+import { LoginRequest, RegisterRequest, LoginResponse, WrappedAuthResponse } from '../../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -14,24 +14,26 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly baseUrl = `${environment.apiUrl}/api/v1/auth`;
 
-  login(request: LoginRequest): Observable<ApiResponse<LoginResponse>> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/login`, request).pipe(
-      tap(response => {
-        if (response.success && response.data) {
-          this.tokenService.setToken(response.data.accessToken);
-          this.redirectByRole();
-        }
+  /**
+   * El backend envuelve la respuesta en { success, data: LoginResponse } gracias al ApiResponseWrapperFilter.
+   * Extraemos response.data para obtener el token real.
+   */
+  login(request: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<WrappedAuthResponse>(`${this.baseUrl}/login`, request).pipe(
+      map(response => response.data),
+      tap(data => {
+        this.tokenService.setToken(data.token);
+        this.redirectByRole();
       })
     );
   }
 
-  register(request: RegisterRequest): Observable<ApiResponse<LoginResponse>> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/register`, request).pipe(
-      tap(response => {
-        if (response.success && response.data) {
-          this.tokenService.setToken(response.data.accessToken);
-          this.redirectByRole();
-        }
+  register(request: RegisterRequest): Observable<LoginResponse> {
+    return this.http.post<WrappedAuthResponse>(`${this.baseUrl}/register`, request).pipe(
+      map(response => response.data),
+      tap(data => {
+        this.tokenService.setToken(data.token);
+        this.redirectByRole();
       })
     );
   }

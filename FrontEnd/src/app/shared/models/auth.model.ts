@@ -14,18 +14,17 @@ export interface RegisterRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  tokenType: string;
-  expiresInSeconds: number;
-  user: UserClaimsResponse;
-}
-
-export interface UserClaimsResponse {
+  token: string;
   userId: string;
   email: string;
-  firstName: string;
-  lastName: string;
   roles: string[];
+}
+
+/** El backend envuelve TODAS las respuestas 2xx en este formato gracias al ApiResponseWrapperFilter */
+export interface WrappedAuthResponse {
+  success: boolean;
+  data: LoginResponse;
+  message?: string;
 }
 
 export interface UserProfile {
