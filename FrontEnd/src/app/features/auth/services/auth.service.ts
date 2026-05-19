@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { TokenService } from '../../../core/services/token.service';
 import { LoginRequest, RegisterRequest, LoginResponse } from '../../../shared/models/auth.model';
+import { ApiResponse } from '../../../shared/models/pagination.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -13,20 +14,24 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly baseUrl = `${environment.apiUrl}/api/v1/auth`;
 
-  login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, request).pipe(
+  login(request: LoginRequest): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/login`, request).pipe(
       tap(response => {
-        this.tokenService.setToken(response.token);
-        this.redirectByRole();
+        if (response.success && response.data) {
+          this.tokenService.setToken(response.data.accessToken);
+          this.redirectByRole();
+        }
       })
     );
   }
 
-  register(request: RegisterRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/register`, request).pipe(
+  register(request: RegisterRequest): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/register`, request).pipe(
       tap(response => {
-        this.tokenService.setToken(response.token);
-        this.redirectByRole();
+        if (response.success && response.data) {
+          this.tokenService.setToken(response.data.accessToken);
+          this.redirectByRole();
+        }
       })
     );
   }

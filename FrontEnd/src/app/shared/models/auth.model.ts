@@ -14,9 +14,17 @@ export interface RegisterRequest {
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
+  tokenType: string;
+  expiresInSeconds: number;
+  user: UserClaimsResponse;
+}
+
+export interface UserClaimsResponse {
   userId: string;
   email: string;
+  firstName: string;
+  lastName: string;
   roles: string[];
 }
 

@@ -458,3 +458,78 @@ img {
     background: var(--color-primary);
   }
 }
+
+/* =====================================================
+   12. MAIN PUBLIC HEADER & NAVBAR (TideScape Style)
+   ===================================================== */
+.main-header {
+  height: var(--navbar-height);
+  background: var(--color-card);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  transition: opacity var(--transition-fast);
+
+  &:hover {
+    opacity: 0.9;
+    color: var(--color-primary);
+  }
+
+  &__brand {
+    color: var(--color-accent);
+  }
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+
+  a {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    position: relative;
+    padding: var(--space-xs) 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--color-secondary);
+      transition: width var(--transition-fast);
+    }
+
+    &:hover, &.active {
+      color: var(--color-primary);
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+}
+
