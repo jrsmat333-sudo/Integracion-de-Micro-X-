@@ -16,15 +16,18 @@ public class BookingIntegrationService : IBookingIntegrationService
     private readonly IInventoryDataService _inventoryData;
     private readonly IUnitOfWork _uow;
     private readonly IConfiguration _configuration;
+    private readonly Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient _catalogClient;
 
     public BookingIntegrationService(
         IInventoryDataService inventoryData,
         IUnitOfWork uow,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient catalogClient)
     {
         _inventoryData = inventoryData;
         _uow = uow;
         _configuration = configuration;
+        _catalogClient = catalogClient;
     }
 
     // ══════════════════════════════════════════════════
@@ -85,14 +88,37 @@ public class BookingIntegrationService : IBookingIntegrationService
         if (slot.CapacityAvailable < totalTickets)
             return ApiResponse<AtraccionBookingResponseDto>.Fail($"No hay cupos suficientes. Cupos restantes: {slot.CapacityAvailable}");
 
+        // Llamada gRPC a Catálogo Microservice para validar precios y nombres
+        var grpcRequest = new Microservicios.Atracciones.Shared.gRPC.ValidateBookingRequest
+        {
+            AttractionId = request.AttractionId.ToString(),
+            ProductOptionId = slot.ProductId.ToString()
+        };
+        
+        var distinctPriceTiers = request.Tickets
+            .Where(t => t.PriceTierId.HasValue)
+            .Select(t => t.PriceTierId.Value.ToString())
+            .Distinct();
+        grpcRequest.PriceTierIds.AddRange(distinctPriceTiers);
+
+        var grpcResponse = await _catalogClient.ValidateBookingDataAsync(grpcRequest);
+        if (!grpcResponse.IsValid)
+            return ApiResponse<AtraccionBookingResponseDto>.Fail($"Error validando datos en Catálogo: {grpcResponse.ErrorMessage}");
+
+        request.AttractionName = grpcResponse.AttractionName;
+        request.ProductTitle = grpcResponse.ProductTitle;
+        string currency = grpcResponse.CurrencyCode;
         decimal totalAmount = 0;
         var details = new List<DataAccess.Entities.BookingDetail>();
-        string currency = request.Currency ?? "USD";
 
         foreach (var t in request.Tickets)
         {
-            // En el microservicio desacoplado, confiamos en los datos de precio y categoría 
-            // que vienen del request (snapshot del catálogo)
+            var officialTier = grpcResponse.PriceTiers.FirstOrDefault(pt => pt.PriceTierId == t.PriceTierId?.ToString());
+            if (officialTier == null)
+                return ApiResponse<AtraccionBookingResponseDto>.Fail($"La categoría de precio {t.PriceTierId} ya no está disponible.");
+
+            t.PriceTierLabel = officialTier.Label;
+            t.UnitPrice = (decimal)officialTier.Price; // Sobrescribimos el precio del request con el oficial de gRPC
             totalAmount += t.UnitPrice;
 
             details.Add(new DataAccess.Entities.BookingDetail
