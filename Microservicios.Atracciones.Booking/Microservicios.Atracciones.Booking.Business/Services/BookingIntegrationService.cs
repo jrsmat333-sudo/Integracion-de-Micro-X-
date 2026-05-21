@@ -17,17 +17,20 @@ public class BookingIntegrationService : IBookingIntegrationService
     private readonly IUnitOfWork _uow;
     private readonly IConfiguration _configuration;
     private readonly Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient _catalogClient;
+    private readonly Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient _billingClient;
 
     public BookingIntegrationService(
         IInventoryDataService inventoryData,
         IUnitOfWork uow,
         IConfiguration configuration,
-        Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient catalogClient)
+        Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient catalogClient,
+        Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient billingClient)
     {
         _inventoryData = inventoryData;
         _uow = uow;
         _configuration = configuration;
         _catalogClient = catalogClient;
+        _billingClient = billingClient;
     }
 
     // ══════════════════════════════════════════════════
@@ -76,8 +79,11 @@ public class BookingIntegrationService : IBookingIntegrationService
     // TRANSACCIONES: CREAR RESERVA
     // ══════════════════════════════════════════════════
 
-    public async Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaAsync(AtraccionBookingRequestDto request, Guid userId)
+    public async Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaAsync(AtraccionBookingRequestDto request, Guid? userId)
     {
+        // Resolver userId: si no hay JWT, generar un UUID como usuario invitado
+        var resolvedUserId = userId ?? Guid.NewGuid();
+
         var slot = await _uow.AvailabilitySlots.Query()
             .FirstOrDefaultAsync(s => s.Id == request.SlotId && s.IsActive);
 
@@ -94,7 +100,7 @@ public class BookingIntegrationService : IBookingIntegrationService
             AttractionId = request.AttractionId.ToString(),
             ProductOptionId = slot.ProductId.ToString()
         };
-        
+
         var distinctPriceTiers = request.Tickets
             .Where(t => t.PriceTierId.HasValue)
             .Select(t => t.PriceTierId.Value.ToString())
@@ -146,14 +152,14 @@ public class BookingIntegrationService : IBookingIntegrationService
                 taxRate = decimal.Parse(configValue, System.Globalization.CultureInfo.InvariantCulture);
             }
         } catch { }
-        
+
         totalAmount = totalAmount * (1 + taxRate);
 
         var booking = new DataAccess.Entities.Booking
         {
             Id = Guid.NewGuid(),
             PnrCode = GeneratePnrCode(),
-            UserId = userId,
+            UserId = resolvedUserId,
             AttractionId = request.AttractionId,
             SlotId = slot.Id,
             StatusId = 2, // Confirmed
@@ -163,10 +169,10 @@ public class BookingIntegrationService : IBookingIntegrationService
             UpdatedAt = DateTime.UtcNow
         };
 
-        try 
+        try
         {
             await _uow.Bookings.AddAsync(booking);
-            
+
             foreach (var detail in details)
             {
                 detail.BookingId = booking.Id;
@@ -177,6 +183,10 @@ public class BookingIntegrationService : IBookingIntegrationService
             slot.UpdatedAt = DateTime.UtcNow;
 
             await _uow.CompleteAsync();
+
+            // Llamada gRPC a Billing para crear la factura automáticamente
+            // Si falla, no se revierte la reserva; puede crearse manualmente por admin
+            _ = CrearFacturaAsync(booking, details, request.Billing, resolvedUserId, currency, taxRate);
 
             return ApiResponse<AtraccionBookingResponseDto>.Ok(new AtraccionBookingResponseDto
             {
@@ -247,6 +257,48 @@ public class BookingIntegrationService : IBookingIntegrationService
         }).ToList();
 
         return ApiResponse<List<AtraccionBookingResponseDto>>.Ok(dtos);
+    }
+
+    // ══════════════════════════════════════════════════
+    // INTEGRACIÓN GRPC: CREAR FACTURA EN BILLING
+    // ══════════════════════════════════════════════════
+
+    private async Task CrearFacturaAsync(
+        DataAccess.Entities.Booking booking,
+        List<DataAccess.Entities.BookingDetail> details,
+        BillingInfo? billingInfo,
+        Guid userId,
+        string currency,
+        decimal taxRate)
+    {
+        try
+        {
+            var grpcInvoice = new Microservicios.Atracciones.Shared.gRPC.CreateInvoiceGrpcRequest
+            {
+                BookingId = booking.Id.ToString(),
+                UserId = userId.ToString(),
+                CustomerName = billingInfo?.CustomerName ?? "Invitado",
+                TaxId = billingInfo?.TaxId ?? string.Empty,
+                Email = billingInfo?.Email ?? string.Empty,
+                Address = billingInfo?.Address ?? string.Empty,
+                CurrencyCode = currency
+            };
+
+            decimal taxRatePercent = taxRate * 100;
+            grpcInvoice.Items.AddRange(details.Select(d => new Microservicios.Atracciones.Shared.gRPC.InvoiceItemGrpc
+            {
+                Description = $"{d.TierNameSnapshot} - {d.AttractionNameSnapshot}",
+                Quantity = d.Quantity,
+                UnitPrice = (double)d.UnitPrice,
+                TaxRate = (double)taxRatePercent
+            }));
+
+            await _billingClient.CreateInvoiceAsync(grpcInvoice);
+        }
+        catch
+        {
+            // La factura puede crearse manualmente por un admin si falla
+        }
     }
 
     private string GeneratePnrCode()

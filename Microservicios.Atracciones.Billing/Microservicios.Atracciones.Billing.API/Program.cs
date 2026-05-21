@@ -19,6 +19,8 @@ builder.Services.AddBusinessServices();
 builder.Services.AddDataManagementServices();
 
 // 2. CONFIGURACIÓN API & CORS
+builder.Services.AddGrpc();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -99,6 +101,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGrpcService<Microservicios.Atracciones.Billing.API.GrpcServices.BillingGrpcService>();
 app.MapControllers();
 
 app.Run();

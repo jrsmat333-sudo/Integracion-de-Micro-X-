@@ -1,0 +1,686 @@
+openapi: 3.0.3
+info:
+  title: Atracciones — Contrato de Integración Pública
+  description: |
+    Contrato REST público del sistema de Atracciones expuesto a través del API Gateway.
+
+    Permite a integradores externos:
+    - Consultar el catálogo de atracciones y su disponibilidad
+    - Crear reservas sin necesidad de autenticación (usuario invitado)
+    - Procesar pagos simulados
+
+    Para flujos autenticados (historial de reservas, facturas) el integrador puede
+    registrar un usuario con POST /api/v1/auth/register e iniciar sesión con
+    POST /api/v1/auth/login para obtener un JWT Bearer.
+  version: 1.0.0
+
+servers:
+  - url: https://gateway-service.ashysea-53177507.centralus.azurecontainerapps.io
+    description: API Gateway en Producción (Azure Container Apps)
+  - url: https://localhost:7000
+    description: API Gateway en Desarrollo Local
+
+tags:
+  - name: Catálogo
+    description: Consulta pública del catálogo de atracciones
+  - name: Disponibilidad
+    description: Consulta de cupos y horarios disponibles
+  - name: Booking
+    description: Creación y gestión de reservas
+  - name: Payment
+    description: Procesamiento de pagos (simulado)
+  - name: Auth
+    description: Autenticación opcional para flujos autenticados
+
+paths:
+
+  # ─────────────────────────────────────────────
+  # CATÁLOGO
+  # ─────────────────────────────────────────────
+
+  /api/v1/attraction:
+    get:
+      tags: [Catálogo]
+      summary: Listar atracciones
+      description: Devuelve el listado paginado de atracciones activas y publicadas.
+      operationId: ListarAtracciones
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: search
+          in: query
+          description: Búsqueda por nombre o descripción
+          schema: { type: string }
+        - name: ubicacion
+          in: query
+          description: Filtrar por ciudad / ubicación
+          schema: { type: string }
+        - name: disponible
+          in: query
+          description: Si es true, devuelve solo atracciones con cupos futuros disponibles
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Listado obtenido correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAtraccion'
+
+  /api/v1/attraction/top:
+    get:
+      tags: [Catálogo]
+      summary: Atracciones mejor valoradas
+      description: Devuelve las atracciones con mayor puntaje de reviews.
+      operationId: GetTopRated
+      responses:
+        '200':
+          description: Listado obtenido correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAtraccion'
+
+  /api/v1/attraction/{slug}:
+    get:
+      tags: [Catálogo]
+      summary: Detalle de atracción por slug
+      description: Recupera toda la información de una atracción para mostrar en la interfaz (nombre, descripción, precio base, imágenes, etc.).
+      operationId: GetAtraccionPorSlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug amigable de la atracción (ej. "tour-ciudad-historica")
+          schema: { type: string }
+      responses:
+        '200':
+          description: Atracción encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAtraccion'
+        '404':
+          description: Atracción no encontrada
+
+  /api/v1/productoption/by-attraction/{attractionId}:
+    get:
+      tags: [Catálogo]
+      summary: Opciones de producto de una atracción
+      description: |
+        Devuelve las opciones disponibles de una atracción (tours, paquetes, horarios fijos)
+        junto con sus categorías de precio (PriceTiers). Los `priceTierId` devueltos aquí
+        son los que se deben enviar al crear una reserva.
+      operationId: GetProductOptionsPorAtraccion
+      parameters:
+        - name: attractionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Opciones encontradas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListProductOption'
+
+  # ─────────────────────────────────────────────
+  # DISPONIBILIDAD
+  # ─────────────────────────────────────────────
+
+  /api/v1/booking/disponibilidad:
+    get:
+      tags: [Disponibilidad]
+      summary: Consultar disponibilidad agrupada por fecha
+      description: |
+        Devuelve los cupos disponibles agrupados por día para una atracción.
+        Si se omite `fecha`, devuelve los próximos 30 días.
+        Solo incluye slots con `capacityAvailable > 0`.
+      operationId: ConsultarDisponibilidad
+      parameters:
+        - name: attractionId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: fecha
+          in: query
+          description: Fecha específica (yyyy-MM-dd). Si se omite, devuelve los próximos 30 días.
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Disponibilidad consultada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListDisponibilidad'
+
+  # ─────────────────────────────────────────────
+  # BOOKING
+  # ─────────────────────────────────────────────
+
+  /api/v1/booking:
+    post:
+      tags: [Booking]
+      summary: Crear reserva (público — no requiere JWT)
+      description: |
+        Bloquea el inventario de cupos y registra la reserva. No requiere autenticación.
+
+        Si el usuario no está autenticado, el sistema genera internamente un UUID
+        aleatorio como identificador de "usuario invitado". Inmediatamente después
+        de confirmar la reserva, se crea la factura en el microservicio de Billing
+        mediante gRPC de forma transparente.
+
+        El campo `billing` es opcional pero recomendado para generar la factura con
+        los datos fiscales correctos del cliente. Si se omite, la factura se emite
+        a nombre de "Invitado".
+
+        El `bookingId` devuelto en la respuesta debe usarse para el POST /api/v1/payment.
+      operationId: CrearReserva
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingRequest'
+            example:
+              slotId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              attractionId: "11111111-2222-3333-4444-555555555555"
+              productOptionId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+              contactName: "María García"
+              contactEmail: "maria@email.com"
+              tickets:
+                - priceTierId: "f1f1f1f1-f2f2-f3f3-f4f4-f5f5f5f5f5f5"
+                  firstName: "María"
+                  lastName: "García"
+                  documentNumber: "0912345678"
+                  documentType: "CI"
+              billing:
+                customerName: "María García"
+                taxId: "0912345678"
+                email: "maria@email.com"
+                address: "Av. Principal 123, Guayaquil"
+      responses:
+        '200':
+          description: Reserva creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBooking'
+        '400':
+          description: Datos inválidos o sin cupos disponibles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+  /api/v1/booking/{id}/cancel:
+    post:
+      tags: [Booking]
+      summary: Cancelar una reserva
+      description: Cancela la reserva y libera los cupos. Requiere JWT del usuario dueño de la reserva.
+      operationId: CancelarReserva
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Reserva cancelada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSuccess'
+        '401':
+          description: No autenticado
+        '400':
+          description: La reserva no puede cancelarse (ya cancelada o completada)
+
+  /api/v1/booking/mis-reservas:
+    get:
+      tags: [Booking]
+      summary: Historial de reservas del usuario autenticado
+      description: Devuelve todas las reservas del usuario identificado por el JWT.
+      operationId: ListarMisReservas
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Historial obtenido correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListBooking'
+        '401':
+          description: No autenticado
+
+  # ─────────────────────────────────────────────
+  # PAYMENT
+  # ─────────────────────────────────────────────
+
+  /api/v1/payment:
+    post:
+      tags: [Payment]
+      summary: Registrar pago (público — no requiere JWT)
+      description: |
+        Registra un pago contra una reserva existente. No requiere autenticación, lo que
+        permite que usuarios invitados completen el pago con su `bookingId`.
+
+        **Flujo esperado:**
+        1. El frontend recibe el `bookingId` al crear la reserva.
+        2. Muestra una pantalla de pago con los datos de la tarjeta (simulados).
+        3. Envía este endpoint con `bookingId`, el monto y el método de pago.
+        4. El sistema registra el pago. El frontend llama luego a
+           `PUT /api/v1/payment/{id}/status` para confirmar el resultado del procesador.
+
+        **Métodos de pago (paymentMethodId):**
+        - `1` = Tarjeta de Crédito
+        - `2` = Tarjeta de Débito
+        - `3` = Transferencia Bancaria
+      operationId: CrearPago
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+            example:
+              bookingId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              paymentMethodId: 1
+              amount: 57.50
+              currencyCode: "USD"
+              transactionExternalId: "ch_simulated_12345"
+      responses:
+        '201':
+          description: Pago registrado. Devuelve el `paymentId` para actualizar estado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+        '400':
+          description: Datos inválidos
+
+  /api/v1/payment/{id}/status:
+    put:
+      tags: [Payment]
+      summary: Actualizar estado del pago (público — no requiere JWT)
+      description: |
+        Actualiza el estado de un pago tras recibir la respuesta del procesador de pagos.
+        No requiere autenticación, permitiendo que el frontend del invitado confirme
+        el resultado sin un JWT.
+
+        **Estados (statusId):**
+        - `1` = Pendiente
+        - `2` = Completado / Pagado
+        - `3` = Fallido
+        - `4` = Reembolsado
+      operationId: ActualizarEstadoPago
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del pago devuelto por POST /api/v1/payment
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentStatusRequest'
+            example:
+              statusId: 2
+              transactionExternalId: "ch_simulated_12345"
+              gatewayResponse: "approved"
+      responses:
+        '204':
+          description: Estado actualizado correctamente
+        '404':
+          description: Pago no encontrado
+
+  # ─────────────────────────────────────────────
+  # AUTH (flujos autenticados opcionales)
+  # ─────────────────────────────────────────────
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Registrar usuario
+      description: Crea una cuenta de cliente en el sistema para acceder a flujos autenticados.
+      operationId: Registrar
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Usuario registrado. Devuelve JWT.
+        '400':
+          description: Email ya registrado u otros errores de validación
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      description: Obtiene el JWT Bearer necesario para endpoints protegidos.
+      operationId: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "maria@email.com"
+              password: "MiPassword123!"
+      responses:
+        '200':
+          description: Token JWT generado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenciales incorrectas
+
+# ─────────────────────────────────────────────
+# COMPONENTES
+# ─────────────────────────────────────────────
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    # ── Catálogo ────────────────────────────────
+
+    AtraccionDto:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        nombre:      { type: string }
+        descripcion: { type: string, nullable: true }
+        precio:      { type: number, format: double, description: "Precio base mínimo disponible" }
+        moneda:      { type: string, example: "USD" }
+        ubicacion:   { type: string }
+        imagenUrl:   { type: string, format: uri, nullable: true }
+        disponible:  { type: boolean }
+
+    ProductOptionDto:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        title:       { type: string }
+        description: { type: string, nullable: true }
+        isActive:    { type: boolean }
+        priceTiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceTierDto'
+
+    PriceTierDto:
+      type: object
+      properties:
+        id:       { type: string, format: uuid, description: "Usar este ID en tickets[].priceTierId al crear la reserva" }
+        label:    { type: string, example: "Adulto" }
+        price:    { type: number, format: double }
+        currency: { type: string, example: "USD" }
+
+    # ── Disponibilidad ──────────────────────────
+
+    DisponibilidadDiariaDto:
+      type: object
+      properties:
+        fecha:             { type: string, format: date }
+        cuposDisponibles:  { type: integer }
+        horarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/HorarioDto'
+
+    HorarioDto:
+      type: object
+      properties:
+        slotId:            { type: string, format: uuid, description: "Usar este ID en BookingRequest.slotId" }
+        horaInicio:        { type: string, example: "09:00" }
+        horaFin:           { type: string, nullable: true, example: "11:00" }
+        cuposDisponibles:  { type: integer }
+        cuposTotales:      { type: integer }
+
+    # ── Booking ─────────────────────────────────
+
+    BookingRequest:
+      type: object
+      required: [slotId, attractionId, productOptionId, tickets]
+      properties:
+        slotId:
+          type: string
+          format: uuid
+          description: "ID del horario/slot obtenido de GET /api/v1/booking/disponibilidad"
+        attractionId:
+          type: string
+          format: uuid
+          description: "ID de la atracción"
+        productOptionId:
+          type: string
+          format: uuid
+          description: "ID de la opción de producto obtenido de GET /api/v1/productoption/by-attraction/{id}"
+        tickets:
+          type: array
+          minItems: 1
+          description: "Un elemento por pasajero"
+          items:
+            $ref: '#/components/schemas/TicketRequest'
+        contactName:
+          type: string
+          nullable: true
+          description: "Nombre de contacto. Se usa para billing si no se envía el objeto billing"
+        contactEmail:
+          type: string
+          format: email
+          nullable: true
+        billing:
+          $ref: '#/components/schemas/BillingInfo'
+          description: "Datos fiscales para la factura. Opcional."
+        notas:
+          type: string
+          nullable: true
+
+    TicketRequest:
+      type: object
+      required: [priceTierId, firstName, lastName, documentNumber]
+      properties:
+        priceTierId:
+          type: string
+          format: uuid
+          description: "ID del PriceTier obtenido de GET /api/v1/productoption/by-attraction/{id}"
+        firstName:      { type: string }
+        lastName:       { type: string }
+        documentNumber: { type: string }
+        documentType:   { type: string, nullable: true, example: "CI" }
+
+    BillingInfo:
+      type: object
+      properties:
+        customerName: { type: string, description: "Nombre completo o razón social" }
+        taxId:        { type: string, nullable: true, description: "RUC o cédula fiscal" }
+        email:        { type: string, format: email, nullable: true }
+        address:      { type: string, nullable: true }
+
+    BookingResponse:
+      type: object
+      properties:
+        bookingId:      { type: string, format: uuid, description: "Usar este ID para el pago" }
+        pnrCode:        { type: string, description: "Código localizador de 8 caracteres" }
+        status:         { type: string, example: "Confirmed" }
+        totalAmount:    { type: number, format: double }
+        currency:       { type: string, example: "USD" }
+        activityDate:   { type: string, format: date-time }
+        attractionName: { type: string }
+
+    # ── Payment ─────────────────────────────────
+
+    CreatePaymentRequest:
+      type: object
+      required: [bookingId, paymentMethodId, amount]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+          description: "bookingId devuelto por POST /api/v1/booking"
+        paymentMethodId:
+          type: integer
+          description: "1=Crédito, 2=Débito, 3=Transferencia"
+          example: 1
+        amount:
+          type: number
+          format: double
+          description: "Debe coincidir con el totalAmount de la reserva"
+        currencyCode:
+          type: string
+          default: "USD"
+        transactionExternalId:
+          type: string
+          nullable: true
+          description: "ID de transacción devuelto por el procesador de pagos (simulado)"
+        statusId:
+          type: integer
+          nullable: true
+          description: "Estado inicial. Si se omite, queda como Pendiente (1)"
+
+    UpdatePaymentStatusRequest:
+      type: object
+      required: [statusId]
+      properties:
+        statusId:
+          type: integer
+          description: "1=Pendiente, 2=Completado, 3=Fallido, 4=Reembolsado"
+          example: 2
+        transactionExternalId:
+          type: string
+          nullable: true
+        gatewayResponse:
+          type: string
+          nullable: true
+          description: "Respuesta en texto del procesador de pagos"
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:                    { type: string, format: uuid }
+        bookingId:             { type: string, format: uuid }
+        transactionExternalId: { type: string, nullable: true }
+        paymentMethodId:       { type: integer }
+        paymentMethodName:     { type: string }
+        statusId:              { type: integer }
+        statusName:            { type: string }
+        amount:                { type: number }
+        currencyCode:          { type: string }
+        paidAt:                { type: string, format: date-time, nullable: true }
+        createdAt:             { type: string, format: date-time }
+
+    # ── Auth ────────────────────────────────────
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:    { type: string, format: email }
+        password: { type: string }
+
+    LoginResponse:
+      type: object
+      properties:
+        token:     { type: string, description: "JWT Bearer token" }
+        expiresAt: { type: string, format: date-time }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, firstName, lastName]
+      properties:
+        email:     { type: string, format: email }
+        password:  { type: string }
+        firstName: { type: string }
+        lastName:  { type: string }
+
+    # ── Wrappers genéricos ───────────────────────
+
+    ApiResponseAtraccion:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { $ref: '#/components/schemas/AtraccionDto' }
+        message: { type: string, nullable: true }
+        errors:  { type: array, items: { type: string } }
+
+    ApiResponseListAtraccion:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { type: array, items: { $ref: '#/components/schemas/AtraccionDto' } }
+        message: { type: string, nullable: true }
+        errors:  { type: array, items: { type: string } }
+
+    ApiResponseListProductOption:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { type: array, items: { $ref: '#/components/schemas/ProductOptionDto' } }
+        message: { type: string, nullable: true }
+        errors:  { type: array, items: { type: string } }
+
+    ApiResponseListDisponibilidad:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { type: array, items: { $ref: '#/components/schemas/DisponibilidadDiariaDto' } }
+        message: { type: string, nullable: true }
+        errors:  { type: array, items: { type: string } }
+
+    ApiResponseBooking:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { $ref: '#/components/schemas/BookingResponse' }
+        message: { type: string, nullable: true }
+        errors:  { type: array, items: { type: string } }
+
+    ApiResponseListBooking:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { type: array, items: { $ref: '#/components/schemas/BookingResponse' } }
+        message: { type: string, nullable: true }
+
+    ApiResponseSuccess:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:    { type: boolean }
+        message: { type: string, nullable: true }
+
+    ApiResponseError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:  { type: array, items: { type: string } }

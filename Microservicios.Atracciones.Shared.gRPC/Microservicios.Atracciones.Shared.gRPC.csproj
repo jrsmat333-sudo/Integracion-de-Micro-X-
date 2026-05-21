@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\catalog.proto" GrpcServices="Both" />
+    <Protobuf Include="Protos\billing.proto" GrpcServices="Both" />
   </ItemGroup>
 
   <ItemGroup>

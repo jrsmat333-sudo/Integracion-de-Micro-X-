@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc" Version="10.0.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
@@ -20,6 +21,7 @@
     <ProjectReference Include="..\Microservicios.Atracciones.Billing.Business\Microservicios.Atracciones.Billing.Business.csproj" />
     <ProjectReference Include="..\Microservicios.Atracciones.Billing.DataAccess\Microservicios.Atracciones.Billing.DataAccess.csproj" />
     <ProjectReference Include="..\Microservicios.Atracciones.Billing.DataManagement\Microservicios.Atracciones.Billing.DataManagement.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.gRPC\Microservicios.Atracciones.Shared.gRPC.csproj" />
   </ItemGroup>
 
 </Project>

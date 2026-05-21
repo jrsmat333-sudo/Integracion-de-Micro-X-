@@ -27,6 +27,7 @@ public class AtraccionesBookingController : ControllerBase
     /// Crea una nueva reserva bloqueando el inventario de cupos.
     /// </summary>
     [HttpPost]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<AtraccionBookingResponseDto>>> CrearReserva([FromBody] AtraccionBookingRequestDto request)
     {
         request.Normalize();
@@ -79,14 +80,14 @@ public class AtraccionesBookingController : ControllerBase
         return Ok(result);
     }
 
-    private Guid GetUserId()
+    private Guid? GetUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                        ?? User.FindFirst("sub")?.Value;
-                       
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("Usuario no identificado en el token.");
 
-        return Guid.Parse(userIdClaim);
+        if (string.IsNullOrEmpty(userIdClaim))
+            return null;
+
+        return Guid.TryParse(userIdClaim, out var id) ? id : null;
     }
 }

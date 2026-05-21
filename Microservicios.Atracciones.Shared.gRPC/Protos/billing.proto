@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "Microservicios.Atracciones.Shared.gRPC";
+
+package billing;
+
+service BillingService {
+  rpc CreateInvoice (CreateInvoiceGrpcRequest) returns (CreateInvoiceGrpcReply);
+}
+
+message CreateInvoiceGrpcRequest {
+  string booking_id = 1;
+  string user_id = 2;
+  string customer_name = 3;
+  string tax_id = 4;
+  string email = 5;
+  string address = 6;
+  string currency_code = 7;
+  repeated InvoiceItemGrpc items = 8;
+}
+
+message InvoiceItemGrpc {
+  string description = 1;
+  int32 quantity = 2;
+  double unit_price = 3;
+  double tax_rate = 4;
+}
+
+message CreateInvoiceGrpcReply {
+  bool success = 1;
+  string invoice_id = 2;
+  string invoice_number = 3;
+  string error_message = 4;
+}

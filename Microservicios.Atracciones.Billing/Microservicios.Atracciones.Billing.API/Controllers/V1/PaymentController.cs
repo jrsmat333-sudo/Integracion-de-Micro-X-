@@ -34,7 +34,7 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<Guid>> Create([FromBody] CreatePaymentRequest request)
     {
         var id = await _paymentService.CreatePaymentAsync(request);
@@ -42,7 +42,7 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPut("{id:guid}/status")]
-    [Authorize] // Permitimos que el Frontend (Cliente) actualice el estado tras el cobro exitoso
+    [AllowAnonymous]
     public async Task<ActionResult> UpdateStatus(Guid id, [FromBody] UpdatePaymentStatusRequest request)
     {
         var success = await _paymentService.UpdatePaymentStatusAsync(id, request);

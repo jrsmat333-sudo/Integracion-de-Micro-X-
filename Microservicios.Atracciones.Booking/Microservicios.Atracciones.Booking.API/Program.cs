@@ -22,6 +22,12 @@ builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogSer
     o.Address = new Uri(catalogUrl);
 });
 
+builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient>(o =>
+{
+    var billingUrl = builder.Configuration["GrpcServices:BillingUrl"] ?? "https://localhost:7052";
+    o.Address = new Uri(billingUrl);
+});
+
 builder.Services.AddControllers(options => 
 {
     options.Filters.Add<Microservicios.Atracciones.Booking.API.Filters.ApiResponseWrapperFilter>();
