@@ -24,35 +24,12 @@ public class AtraccionDbContext : DbContext
     public DbSet<Location> Locations { get; set; }
 
     // ══════════════════════════════════════════════════════
-    // 2. CATÁLOGO
-    // ══════════════════════════════════════════════════════
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Subcategory> Subcategories { get; set; }
-    public DbSet<Tag> Tags { get; set; }
-
-    // ══════════════════════════════════════════════════════
-    // 3. ATRACCIONES
+    // 2. ATRACCIONES
     // ══════════════════════════════════════════════════════
     public DbSet<Attraction> Attractions { get; set; }
-    public DbSet<AttractionTag> AttractionTags { get; set; }
-    public DbSet<AttractionMedia> AttractionMedias { get; set; }
-    public DbSet<AttractionInclusion> AttractionInclusions { get; set; }
 
     // ══════════════════════════════════════════════════════
-    // 4. ITINERARIO
-    // ══════════════════════════════════════════════════════
-    public DbSet<TourItinerary> TourItineraries { get; set; }
-    public DbSet<TourStop> TourStops { get; set; }
-    public DbSet<TourStopMedia> TourStopMedias { get; set; }
-
-    // ══════════════════════════════════════════════════════
-    // 5. INCLUSIONES
-    // ══════════════════════════════════════════════════════
-    public DbSet<InclusionItem> InclusionItems { get; set; }
-    public DbSet<MediaType> MediaTypes { get; set; }
-
-    // ══════════════════════════════════════════════════════
-    // 6. INVENTARIO Y PRECIOS
+    // 3. INVENTARIO Y PRECIOS
     // ══════════════════════════════════════════════════════
     public DbSet<ProductOption> ProductOptions { get; set; }
     public DbSet<PriceTier> PriceTiers { get; set; }
@@ -66,25 +43,13 @@ public class AtraccionDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AtraccionDbContext).Assembly);
 
-        // Mapeo manual para resolver la inconsistencia de nombres en tu BD
         var tableMapping = new Dictionary<string, string>
         {
             { nameof(Location), "locations" },
-            { nameof(Category), "category" },
-            { nameof(Subcategory), "subcategory" },
-            { nameof(InclusionItem), "inclusion_item" },
             { nameof(Attraction), "attraction" },
-            { nameof(AttractionTag), "attraction_tag" },
-            { nameof(Tag), "tag" },
-            { nameof(AttractionInclusion), "attraction_inclusion" },
-            { nameof(AttractionMedia), "attraction_media" },
-            { nameof(MediaType), "media_type" },
             { nameof(ProductOption), "product_option" },
             { nameof(PriceTier), "price_tier" },
-            { nameof(TicketCategory), "ticket_category" },
-            { nameof(TourItinerary), "tour_itinerary" },
-            { nameof(TourStop), "tour_stop" },
-            { nameof(TourStopMedia), "tour_stop_media" }
+            { nameof(TicketCategory), "ticket_category" }
         };
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())

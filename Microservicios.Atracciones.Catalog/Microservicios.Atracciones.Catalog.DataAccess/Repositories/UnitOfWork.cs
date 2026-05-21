@@ -16,35 +16,21 @@ public class UnitOfWork : IUnitOfWork
     private ILocationRepository? _locations;
     public ILocationRepository Locations => _locations ??= new LocationRepository(_context);
 
-    // Catálogo
-    private ICategoryRepository? _categories;
-    private ISubcategoryRepository? _subcategories;
-    private ITagRepository? _tags;
-    public ICategoryRepository Categories => _categories ??= new CategoryRepository(_context);
-    public ISubcategoryRepository Subcategories => _subcategories ??= new SubcategoryRepository(_context);
-    public ITagRepository Tags => _tags ??= new TagRepository(_context);
-
     // Atracción
     private IAttractionRepository? _attractions;
-    private ITourItineraryRepository? _tourItineraries;
     public IAttractionRepository Attractions => _attractions ??= new AttractionRepository(_context);
-    public ITourItineraryRepository TourItineraries => _tourItineraries ??= new TourItineraryRepository(_context);
 
-    // Inclusiones y Modalidades
-    private IInclusionItemRepository? _inclusionItems;
+    // Modalidades
     private IProductOptionRepository? _productOptions;
-    public IInclusionItemRepository InclusionItems => _inclusionItems ??= new InclusionItemRepository(_context);
     public IProductOptionRepository ProductOptions => _productOptions ??= new ProductOptionRepository(_context);
 
     // Precios
     private IPriceTierRepository? _priceTiers;
     public IPriceTierRepository PriceTiers => _priceTiers ??= new PriceTierRepository(_context);
 
-    // Otros
+    // Ticket
     private ITicketCategoryRepository? _ticketCategories;
-    private ITourStopRepository? _tourStops;
     public ITicketCategoryRepository TicketCategories => _ticketCategories ??= new TicketCategoryRepository(_context);
-    public ITourStopRepository TourStops => _tourStops ??= new TourStopRepository(_context);
 
     public async Task<int> CompleteAsync()
     {

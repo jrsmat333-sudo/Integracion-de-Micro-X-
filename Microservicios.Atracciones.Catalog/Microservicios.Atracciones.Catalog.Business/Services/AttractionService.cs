@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microservicios.Atracciones.Catalog.Business.DTOs.Attraction;
 using Microservicios.Atracciones.Catalog.Business.DTOs.Inventory;
 using Microservicios.Atracciones.Catalog.Business.Exceptions;
@@ -30,10 +29,6 @@ public class AttractionService : IAttractionService
         {
             SearchTerm = request.SearchTerm ?? string.Empty,
             LocationId = request.LocationId,
-            CategorySlug = request.CategorySlug,
-            SubcategoryId = request.SubcategoryId,
-            TagId = request.TagId,
-            TagIds = request.TagIds,
             MinRating = request.MinRating,
             DifficultyLevel = request.DifficultyLevel,
             DifficultyLevels = request.DifficultyLevels,
@@ -88,9 +83,7 @@ public class AttractionService : IAttractionService
         if (node == null) return null;
 
         var products = await _inventoryData.GetProductsAsync(node.Id, languageId);
-        var itinerary = (await GetItinerariesAsync(node.Id)).FirstOrDefault();
-
-        return MapToDetail(node, products, itinerary);
+        return MapToDetail(node, products);
     }
 
     public async Task<IEnumerable<AttractionSummaryResponse>> GetTopRatedAsync(int count = 6)
@@ -112,7 +105,7 @@ public class AttractionService : IAttractionService
             Id = Guid.NewGuid(),
             Name = request.Name,
             LocationId = request.LocationId,
-            SubcategoryId = request.SubcategoryId,
+            ImageUrl = request.ImageUrl,
             DescriptionShort = request.DescriptionShort,
             DescriptionFull = request.DescriptionFull,
             Address = request.Address,
@@ -134,7 +127,7 @@ public class AttractionService : IAttractionService
             Id = Guid.NewGuid(),
             Name = request.Name,
             LocationId = request.LocationId,
-            SubcategoryId = request.SubcategoryId,
+            ImageUrl = request.ImageUrl,
             DescriptionShort = request.DescriptionShort,
             DescriptionFull = request.DescriptionFull,
             Address = request.Address,
@@ -146,32 +139,6 @@ public class AttractionService : IAttractionService
             IsPublished = false,
             Slug = GenerateSlug(request.Name)
         };
-
-        foreach (var m in request.Media)
-        {
-            attraction.Media.Add(new AttractionMedia
-            {
-                MediaTypeId = m.MediaTypeId,
-                Url = m.Url,
-                Title = m.Title,
-                IsMain = m.IsMain,
-                SortOrder = m.SortOrder
-            });
-        }
-
-        foreach (var tagId in request.Tags)
-        {
-            attraction.Tags.Add(new AttractionTag { TagId = tagId });
-        }
-
-        foreach (var inc in request.Inclusions)
-        {
-            attraction.Inclusions.Add(new AttractionInclusion 
-            { 
-                InclusionItemId = inc.InclusionItemId,
-                Type = inc.Type
-            });
-        }
 
         if (!request.Products.Any())
             throw new ValidationException("Debe agregar al menos una modalidad (producto) a la atracción.");
@@ -212,33 +179,6 @@ public class AttractionService : IAttractionService
             attraction.ProductOptions.Add(product);
         }
 
-        if (request.Itinerary != null)
-        {
-            var itinerary = new TourItinerary
-            {
-                Id = Guid.NewGuid(),
-                AttractionId = attraction.Id,
-                Overview = request.Itinerary.Overview,
-                Title = attraction.Name
-            };
-
-            foreach (var s in request.Itinerary.Stops)
-            {
-                itinerary.Stops.Add(new TourStop
-                {
-                    Name = s.Name,
-                    Description = s.Description,
-                    Latitude = s.Latitude,
-                    Longitude = s.Longitude,
-                    StopNumber = s.StopNumber,
-                    AdmissionType = s.AdmissionType,
-                    DurationMinutes = s.StayTimeMinutes
-                });
-            }
-
-            attraction.Itineraries.Add(itinerary);
-        }
-
         await _uow.Attractions.AddAsync(attraction);
         await _uow.CompleteAsync();
 
@@ -259,7 +199,7 @@ public class AttractionService : IAttractionService
             Id = id,
             Name = request.Name,
             LocationId = request.LocationId,
-            SubcategoryId = request.SubcategoryId,
+            ImageUrl = request.ImageUrl,
             DescriptionShort = request.DescriptionShort,
             DescriptionFull = request.DescriptionFull,
             Address = request.Address,
@@ -340,13 +280,14 @@ public class AttractionService : IAttractionService
             }
         }
 
-        var response = new AttractionFullEditionResponse
+        return new AttractionFullEditionResponse
         {
             Id = a.Id,
             Slug = a.Slug,
             Name = a.Name,
             DescriptionShort = a.DescriptionShort,
             DescriptionFull = a.DescriptionFull,
+            ImageUrl = a.ImageUrl,
             RatingAverage = a.RatingAverage,
             RatingCount = a.RatingCount,
             DifficultyLevel = a.DifficultyLevel,
@@ -357,27 +298,10 @@ public class AttractionService : IAttractionService
             LocationId = a.LocationId,
             LocationName = a.Location?.Name ?? "",
             LocationCountryCode = a.Location?.CountryCode ?? "",
-            CategoryName = a.Subcategory?.Category?.Name ?? "",
-            SubcategoryName = a.Subcategory?.Name ?? "",
             StateId = stateId ?? Guid.Empty,
             CountryId = countryId ?? Guid.Empty,
             IsActive = a.IsActive,
             IsPublished = a.IsPublished,
-            Gallery = a.Media.Select(m => new MediaResponse
-            {
-                Url = m.Url,
-                Title = m.Title,
-                IsMain = m.IsMain,
-                SortOrder = m.SortOrder
-            }).ToList(),
-            Tags = a.Tags.Select(at => new TagResponse { Id = at.TagId, Name = at.Tag?.Name ?? "" }).ToList(),
-            Inclusions = a.Inclusions.Select(ai => new InclusionResponse
-            {
-                Id = ai.InclusionItemId,
-                InclusionItemId = ai.InclusionItemId,
-                Name = ai.InclusionItem?.DefaultText ?? "",
-                Type = ai.Type
-            }).ToList(),
             Products = a.ProductOptions.Select(po => new ProductResponse
             {
                 Id = po.Id,
@@ -398,191 +322,55 @@ public class AttractionService : IAttractionService
                 }).ToList()
             }).ToList()
         };
-
-        var itinerary = a.Itineraries.FirstOrDefault();
-        if (itinerary != null)
-        {
-            response.Itinerary = new ItineraryResponse
-            {
-                Id = itinerary.Id,
-                Title = itinerary.Title,
-                Description = itinerary.Overview,
-                Stops = itinerary.Stops.OrderBy(s => s.StopNumber).Select(s => new TourStopResponse
-                {
-                    Id = s.Id,
-                    StopNumber = s.StopNumber,
-                    Name = s.Name,
-                    Description = s.Description,
-                    Latitude = s.Latitude,
-                    Longitude = s.Longitude,
-                    AdmissionType = s.AdmissionType,
-                    DurationMinutes = s.DurationMinutes
-                }).ToList()
-            };
-        }
-
-        return response;
-    }
-
-    public async Task<IEnumerable<ItineraryResponse>> GetItinerariesAsync(Guid attractionId)
-    {
-        var itineraries = await _uow.TourItineraries.Query()
-            .Where(ti => ti.AttractionId == attractionId)
-            .Include(ti => ti.Stops)
-            .ToListAsync();
-
-        return itineraries.Select(ti => new ItineraryResponse
-        {
-            Id = ti.Id,
-            Title = ti.Title,
-            Description = ti.Overview,
-            TotalDistanceKm = ti.TotalDistanceKm,
-            Stops = ti.Stops.OrderBy(s => s.StopNumber).Select(s => new TourStopResponse
-            {
-                Id = s.Id,
-                StopNumber = s.StopNumber,
-                Name = s.Name,
-                Description = s.Description,
-                DurationMinutes = s.DurationMinutes,
-                AdmissionType = s.AdmissionType,
-                Latitude = s.Latitude,
-                Longitude = s.Longitude
-            }).ToList()
-        });
-    }
-
-    public async Task<Guid> CreateItineraryAsync(Guid attractionId, CreateItineraryRequest request)
-    {
-        var itinerary = new TourItinerary
-        {
-            Id = Guid.NewGuid(),
-            AttractionId = attractionId,
-            Title = request.Title,
-            Overview = request.Description,
-            TotalDistanceKm = request.TotalDistanceKm,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _uow.TourItineraries.AddAsync(itinerary);
-        await _uow.CompleteAsync();
-        return itinerary.Id;
-    }
-
-    public async Task<Guid> AddStopAsync(Guid itineraryId, CreateTourStopRequest request)
-    {
-        var stop = new TourStop
-        {
-            Id = Guid.NewGuid(),
-            ItineraryId = itineraryId,
-            StopNumber = request.StopNumber,
-            Name = request.Name,
-            Description = request.Description,
-            DurationMinutes = (short?)request.DurationMinutes,
-            AdmissionType = request.AdmissionType,
-            Latitude = request.Latitude,
-            Longitude = request.Longitude
-        };
-
-        await _uow.TourStops.AddAsync(stop);
-        await _uow.CompleteAsync();
-        return stop.Id;
-    }
-
-    public async Task<bool> DeleteItineraryAsync(Guid id)
-    {
-        var itinerary = await _uow.TourItineraries.GetByIdAsync(id);
-        if (itinerary == null) return false;
-        _uow.TourItineraries.Delete(itinerary);
-        return await _uow.CompleteAsync() > 0;
-    }
-
-    public async Task<bool> DeleteStopAsync(Guid id)
-    {
-        var stop = await _uow.TourStops.GetByIdAsync(id);
-        if (stop == null) return false;
-        _uow.TourStops.Delete(stop);
-        return await _uow.CompleteAsync() > 0;
     }
 
     private static string GenerateSlug(string name)
     {
         return name.ToLower()
                    .Replace(" ", "-")
-                   .Replace("á", "a")
-                   .Replace("é", "e")
-                   .Replace("í", "i")
-                   .Replace("ó", "o")
-                   .Replace("ú", "u")
+                   .Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u")
                    .Replace("ñ", "n")
                    + "-" + Guid.NewGuid().ToString().Substring(0, 4);
     }
 
-    private static AttractionSummaryResponse MapToSummary(AttractionNode node)
+    private static AttractionSummaryResponse MapToSummary(AttractionNode node) => new()
     {
-        var mainImage = node.MediaGallery.FirstOrDefault(m => m.IsMain)?.Url
-                     ?? node.MediaGallery.FirstOrDefault()?.Url;
+        Id = node.Id,
+        Slug = node.Slug,
+        Name = node.Name,
+        DescriptionShort = node.DescriptionShort,
+        LocationName = node.LocationName,
+        LocationCountryCode = node.LocationCountryCode,
+        RatingAverage = node.RatingAverage,
+        RatingCount = node.RatingCount,
+        DifficultyLevel = node.DifficultyLevel,
+        ImageUrl = node.ImageUrl,
+        StartingPrice = node.StartingPrice,
+        IsActive = node.IsActive,
+        IsPublished = node.IsPublished,
+        ModalityCount = node.ModalityCount
+    };
 
-        return new AttractionSummaryResponse
-        {
-            Id = node.Id,
-            Slug = node.Slug,
-            Name = node.Name,
-            DescriptionShort = node.DescriptionShort,
-            LocationName = node.LocationName,
-            LocationCountryCode = node.LocationCountryCode,
-            CategoryName = node.CategoryName,
-            SubcategoryName = node.SubcategoryName,
-            RatingAverage = node.RatingAverage,
-            RatingCount = node.RatingCount,
-            DifficultyLevel = node.DifficultyLevel,
-            MainImageUrl = mainImage,
-            StartingPrice = node.StartingPrice,
-            IsActive = node.IsActive,
-            IsPublished = node.IsPublished,
-            ModalityCount = node.ModalityCount
-        };
-    }
-
-    private static AttractionDetailResponse MapToDetail(AttractionNode node, IEnumerable<ProductNode> products, ItineraryResponse? itinerary = null)
+    private static AttractionDetailResponse MapToDetail(AttractionNode node, IEnumerable<ProductNode> products) => new()
     {
-        return new AttractionDetailResponse
-        {
-            Id = node.Id,
-            Slug = node.Slug,
-            Name = node.Name,
-            DescriptionShort = node.DescriptionShort,
-            DescriptionFull = node.DescriptionFull,
-            RatingAverage = node.RatingAverage,
-            RatingCount = node.RatingCount,
-            DifficultyLevel = node.DifficultyLevel,
-            Address = node.Address,
-            MeetingPoint = node.MeetingPoint,
-            Latitude = node.Latitude,
-            Longitude = node.Longitude,
-            LocationId = node.LocationId,
-            LocationName = node.LocationName,
-            LocationCountryCode = node.LocationCountryCode,
-            CategoryName = node.CategoryName,
-            SubcategoryName = node.SubcategoryName,
-            Gallery = node.MediaGallery.Select(m => new MediaResponse
-            {
-                Url = m.Url,
-                Title = m.Title,
-                IsMain = m.IsMain,
-                SortOrder = m.SortOrder
-            }).ToList(),
-            Products = products.Select(MapToProductResponse).ToList(),
-            Tags = node.Tags.Select(t => new TagResponse { Id = t.Id, Name = t.Name }).ToList(),
-            Inclusions = node.Inclusions.Select(i => new InclusionResponse 
-            { 
-                Id = i.Id, 
-                Name = i.Name, 
-                Description = i.Description, 
-                Type = i.Type 
-            }).ToList(),
-            Itinerary = itinerary
-        };
-    }
+        Id = node.Id,
+        Slug = node.Slug,
+        Name = node.Name,
+        DescriptionShort = node.DescriptionShort,
+        DescriptionFull = node.DescriptionFull,
+        ImageUrl = node.ImageUrl,
+        RatingAverage = node.RatingAverage,
+        RatingCount = node.RatingCount,
+        DifficultyLevel = node.DifficultyLevel,
+        Address = node.Address,
+        MeetingPoint = node.MeetingPoint,
+        Latitude = node.Latitude,
+        Longitude = node.Longitude,
+        LocationId = node.LocationId,
+        LocationName = node.LocationName,
+        LocationCountryCode = node.LocationCountryCode,
+        Products = products.Select(MapToProductResponse).ToList()
+    };
 
     private static ProductResponse MapToProductResponse(ProductNode p) => new()
     {

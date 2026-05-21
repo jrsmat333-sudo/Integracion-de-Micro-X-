@@ -18,12 +18,4 @@ public interface IAttractionService
     Task<bool> ToggleStatusAsync(Guid id, bool isPublished, Guid userId, bool isAdmin);
     Task<bool> ToggleActiveAsync(Guid id, bool isActive, Guid userId, bool isAdmin);
     Task<AttractionFullEditionResponse?> GetCompleteByIdAsync(Guid id, Guid userId, bool isAdmin);
-
-    // Itinerarios
-    Task<IEnumerable<ItineraryResponse>> GetItinerariesAsync(Guid attractionId);
-    Task<Guid> CreateItineraryAsync(Guid attractionId, CreateItineraryRequest request);
-    Task<Guid> AddStopAsync(Guid itineraryId, CreateTourStopRequest request);
-    Task<bool> DeleteItineraryAsync(Guid id);
-    Task<bool> DeleteStopAsync(Guid id);
 }
-

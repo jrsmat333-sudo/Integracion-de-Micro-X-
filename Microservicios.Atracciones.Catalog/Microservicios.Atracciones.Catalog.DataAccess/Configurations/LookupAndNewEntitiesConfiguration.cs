@@ -4,23 +4,6 @@ using Microservicios.Atracciones.Catalog.DataAccess.Entities;
 
 namespace Microservicios.Atracciones.Catalog.DataAccess.Configurations;
 
-// ── Lookup Tables (con HasData seed) ────────────────
-
-public class MediaTypeConfiguration : IEntityTypeConfiguration<MediaType>
-{
-    public void Configure(EntityTypeBuilder<MediaType> builder)
-    {
-        builder.ToTable("MediaType");
-        builder.HasKey(m => m.Id);
-        builder.Property(m => m.Name).HasMaxLength(20).IsRequired();
-        builder.HasData(
-            new MediaType { Id = 1, Name = "image" },
-            new MediaType { Id = 2, Name = "video" },
-            new MediaType { Id = 3, Name = "document" }
-        );
-    }
-}
-
 public class TicketCategoryConfiguration : IEntityTypeConfiguration<TicketCategory>
 {
     public void Configure(EntityTypeBuilder<TicketCategory> builder)
@@ -36,62 +19,6 @@ public class TicketCategoryConfiguration : IEntityTypeConfiguration<TicketCatego
             new TicketCategory { Id = Guid.Parse("C3D4E5F6-A1B2-4C3D-0E1F-2A3B4C5D6E7F"), Name = "Bebé", NameEn = "Infant", AgeRangeMax = 4, SortOrder = 3 },
             new TicketCategory { Id = Guid.Parse("D4E5F6A1-B2C3-4D4E-1F2A-3B4C5D6E7F8A"), Name = "Senior", NameEn = "Senior", AgeRangeMin = 65, SortOrder = 4 }
         );
-    }
-}
-
-// ── Tablas N-M ─────────────────────────────────────
-
-public class AttractionTagConfiguration : IEntityTypeConfiguration<AttractionTag>
-{
-    public void Configure(EntityTypeBuilder<AttractionTag> builder)
-    {
-        builder.ToTable("AttractionTag");
-        builder.HasKey(at => new { at.AttractionId, at.TagId });
-    }
-}
-
-public class AttractionInclusionConfiguration : IEntityTypeConfiguration<AttractionInclusion>
-{
-    public void Configure(EntityTypeBuilder<AttractionInclusion> builder)
-    {
-        builder.ToTable("AttractionInclusion", t => t.HasCheckConstraint("CK_AttrIncl_Type", "type IN ('included','not_included','optional','bring')"));
-        builder.HasKey(ai => new { ai.AttractionId, ai.InclusionItemId });
-        builder.Property(ai => ai.Type).HasMaxLength(20).IsRequired();
-    }
-}
-
-// ── Itinerarios ────────────────────────────────────
-
-public class TourItineraryConfiguration : IEntityTypeConfiguration<TourItinerary>
-{
-    public void Configure(EntityTypeBuilder<TourItinerary> builder)
-    {
-        builder.ToTable("TourItinerary");
-        builder.HasKey(ti => ti.Id);
-        builder.HasIndex(ti => ti.AttractionId);
-        builder.Property(ti => ti.Title).HasMaxLength(150).IsRequired();
-        builder.Property(ti => ti.TotalDistanceKm).HasPrecision(6, 2);
-        builder.Property(ti => ti.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-
-        builder.HasMany(ti => ti.Stops)
-               .WithOne(s => s.Itinerary)
-               .HasForeignKey(s => s.ItineraryId)
-               .OnDelete(DeleteBehavior.Cascade);
-    }
-}
-
-public class TourStopConfiguration : IEntityTypeConfiguration<TourStop>
-{
-    public void Configure(EntityTypeBuilder<TourStop> builder)
-    {
-        builder.ToTable("TourStop", t => t.HasCheckConstraint("CK_TourStop_Admission",
-            "admission_type IS NULL OR admission_type IN ('included','optional','excluded','bring')"));
-        builder.HasKey(s => s.Id);
-        builder.HasIndex(s => new { s.ItineraryId, s.StopNumber }).IsUnique();
-        builder.Property(s => s.Name).HasMaxLength(150).IsRequired();
-        builder.Property(s => s.AdmissionType).HasMaxLength(20);
-        builder.Property(s => s.Latitude).HasPrecision(9, 6);
-        builder.Property(s => s.Longitude).HasPrecision(9, 6);
     }
 }
 

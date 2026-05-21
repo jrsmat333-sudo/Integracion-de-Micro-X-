@@ -18,7 +18,6 @@ public class AttractionQueries : IAttractionQueries
     {
         var query = _context.Attractions
             .AsNoTracking()
-            .Include(a => a.Media.Where(m => m.IsMain))
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filters.SearchTerm))

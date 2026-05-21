@@ -5,25 +5,17 @@ public interface IUnitOfWork : IDisposable
     // Geografía
     ILocationRepository Locations { get; }
 
-    // Catálogo
-    ICategoryRepository Categories { get; }
-    ISubcategoryRepository Subcategories { get; }
-    ITagRepository Tags { get; }
-
     // Atracción
     IAttractionRepository Attractions { get; }
-    ITourItineraryRepository TourItineraries { get; }
 
-    // Inclusiones y Modalidades
-    IInclusionItemRepository InclusionItems { get; }
+    // Modalidades
     IProductOptionRepository ProductOptions { get; }
 
     // Precios
     IPriceTierRepository PriceTiers { get; }
 
-    // Otros
+    // Ticket
     ITicketCategoryRepository TicketCategories { get; }
-    ITourStopRepository TourStops { get; }
 
     Task<int> CompleteAsync();
 }

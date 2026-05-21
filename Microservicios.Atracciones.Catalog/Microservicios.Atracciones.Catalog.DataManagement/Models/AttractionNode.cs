@@ -1,10 +1,5 @@
 namespace Microservicios.Atracciones.Catalog.DataManagement.Models;
 
-/// <summary>
-/// Representa una vista densa y consolidada de una Atracción 
-/// (agrupando media y descripciones principales de su ubicación).
-/// Útil para la lógica de dominio superior (Servicios de Business).
-/// </summary>
 public class AttractionNode
 {
     public Guid Id { get; set; }
@@ -12,6 +7,7 @@ public class AttractionNode
     public string Name { get; set; } = string.Empty;
     public string? DescriptionShort { get; set; }
     public string? DescriptionFull { get; set; }
+    public string? ImageUrl { get; set; }
     public decimal RatingAverage { get; set; }
     public int RatingCount { get; set; }
     public string? DifficultyLevel { get; set; }
@@ -24,40 +20,9 @@ public class AttractionNode
     public bool IsActive { get; set; }
     public bool IsPublished { get; set; }
     public int ModalityCount { get; set; }
-    
+
     // Jerarquía directa aplanada
     public Guid LocationId { get; set; }
     public string LocationName { get; set; } = string.Empty;
     public string LocationCountryCode { get; set; } = string.Empty;
-
-    public Guid SubcategoryId { get; set; }
-    public string SubcategoryName { get; set; } = string.Empty;
-    public string CategoryName { get; set; } = string.Empty;
-
-    // Elementos multimedia principales
-    public List<MediaNode> MediaGallery { get; set; } = [];
-    public List<TagNode> Tags { get; set; } = [];
-    public List<InclusionNode> Inclusions { get; set; } = [];
-}
-
-public class TagNode
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-}
-
-public class InclusionNode
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string Type { get; set; } = "included";
-}
-
-public class MediaNode
-{
-    public string Url { get; set; } = string.Empty;
-    public string? Title { get; set; }
-    public bool IsMain { get; set; }
-    public short SortOrder { get; set; }
 }

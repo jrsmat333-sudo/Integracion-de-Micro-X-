@@ -18,7 +18,7 @@ El Gateway redirige las rutas que empiezan con `/api/v1/Auth` y `/api/v1/client`
 ---
 
 ## 2. Catálogo de Atracciones (Catalog Service)
-El Gateway redirige las rutas que empiezan con `/api/v1/catalog` hacia el microservicio Catalog.
+El Gateway redirige las rutas que empiezan con `/api/v1` hacia el microservicio Catalog.
 
 - **Listar Atracciones** (Reemplaza a `GET /atracciones`)
   - `GET https://gateway-service.ashysea-53177507.centralus.azurecontainerapps.io/api/v1/catalog/attraction`

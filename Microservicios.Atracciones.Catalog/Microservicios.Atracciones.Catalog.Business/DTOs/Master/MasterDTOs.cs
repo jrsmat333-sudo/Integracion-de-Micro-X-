@@ -1,16 +1,5 @@
 namespace Microservicios.Atracciones.Catalog.Business.DTOs.Master;
 
-public class CreateTagRequest
-{
-    public string Name { get; set; } = string.Empty;
-}
-
-public class CreateInclusionRequest
-{
-    public string DefaultText { get; set; } = string.Empty;
-    public string? IconSlug { get; set; }
-}
-
 public class TicketCategoryResponse
 {
     public Guid Id { get; set; }

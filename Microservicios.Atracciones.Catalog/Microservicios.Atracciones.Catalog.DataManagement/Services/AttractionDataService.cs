@@ -24,30 +24,16 @@ public class AttractionDataService : IAttractionDataService
     {
         var attraction = await _unitOfWork.Attractions.Query()
             .Include(a => a.Location)
-            .Include(a => a.Subcategory)
-            .ThenInclude(s => s.Category)
-            .Include(a => a.Media)
-            .Include(a => a.Tags).ThenInclude(t => t.Tag)
-            .Include(a => a.Inclusions).ThenInclude(i => i.InclusionItem)
+            .Include(a => a.ProductOptions).ThenInclude(p => p.PriceTiers)
             .FirstOrDefaultAsync(a => a.Slug == slug && a.DeletedAt == null);
 
         if (attraction == null) return null;
 
         var node = _mapper.Map<AttractionNode>(attraction);
 
-        node.Tags = attraction.Tags.Select(at => new TagNode
-        {
-            Id = at.Tag?.Id ?? at.TagId,
-            Name = at.Tag?.Name ?? ""
-        }).ToList();
-
-        node.Inclusions = attraction.Inclusions.Select(ai => new InclusionNode
-        {
-            Id = ai.InclusionItem?.Id ?? Guid.Empty,
-            Name = ai.InclusionItem?.DefaultText ?? "",
-            Description = ai.InclusionItem?.IconSlug,
-            Type = ai.Type
-        }).ToList();
+        var prices = attraction.ProductOptions.SelectMany(po => po.PriceTiers).Select(pt => pt.Price).ToList();
+        if (prices.Any()) node.StartingPrice = prices.Min();
+        node.ModalityCount = attraction.ProductOptions.Count;
 
         return node;
     }
@@ -56,11 +42,7 @@ public class AttractionDataService : IAttractionDataService
     {
         var attractions = await _unitOfWork.Attractions.Query()
             .Include(a => a.Location)
-            .Include(a => a.Subcategory)
-            .ThenInclude(s => s.Category)
-            .Include(a => a.Media.Where(m => m.IsMain))
-            .Include(a => a.ProductOptions)
-                .ThenInclude(p => p.PriceTiers)
+            .Include(a => a.ProductOptions).ThenInclude(p => p.PriceTiers)
             .Where(a => a.IsPublished && a.IsActive && a.DeletedAt == null)
             .OrderByDescending(a => a.RatingAverage)
             .Take(count)
@@ -71,15 +53,8 @@ public class AttractionDataService : IAttractionDataService
         foreach (var node in nodes)
         {
             var entity = attractions.First(i => i.Id == node.Id);
-            var prices = entity.ProductOptions
-                               .SelectMany(po => po.PriceTiers)
-                               .Select(pt => pt.Price)
-                               .ToList();
-
-            if (prices.Any())
-            {
-                node.StartingPrice = prices.Min();
-            }
+            var prices = entity.ProductOptions.SelectMany(po => po.PriceTiers).Select(pt => pt.Price).ToList();
+            if (prices.Any()) node.StartingPrice = prices.Min();
             node.ModalityCount = entity.ProductOptions.Count;
         }
 
@@ -90,15 +65,13 @@ public class AttractionDataService : IAttractionDataService
     {
         IQueryable<Attraction> query = _unitOfWork.Attractions.Query()
             .Include(a => a.Location)
-            .Include(a => a.Subcategory).ThenInclude(s => s.Category)
-            .Include(a => a.Media.Where(m => m.IsMain))
-            .Include(a => a.ProductOptions)
-                .ThenInclude(p => p.PriceTiers)
+            .Include(a => a.ProductOptions).ThenInclude(p => p.PriceTiers)
             .Where(a => a.DeletedAt == null);
-            
+
         if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
         {
-            query = query.Where(a => a.Name.Contains(filters.SearchTerm) || (a.DescriptionShort != null && a.DescriptionShort.Contains(filters.SearchTerm)));
+            query = query.Where(a => a.Name.Contains(filters.SearchTerm) ||
+                (a.DescriptionShort != null && a.DescriptionShort.Contains(filters.SearchTerm)));
         }
 
         if (filters is AttractionQueryFilters attrFilters)
@@ -114,29 +87,10 @@ public class AttractionDataService : IAttractionDataService
 
             if (attrFilters.LocationId.HasValue)
             {
-                query = query.Where(a => a.LocationId == attrFilters.LocationId.Value || 
-                                       (a.Location != null && a.Location.ParentId == attrFilters.LocationId.Value) || 
-                                       (a.Location != null && a.Location.Parent != null && a.Location.Parent.ParentId == attrFilters.LocationId.Value));
+                query = query.Where(a => a.LocationId == attrFilters.LocationId.Value ||
+                    (a.Location != null && a.Location.ParentId == attrFilters.LocationId.Value) ||
+                    (a.Location != null && a.Location.Parent != null && a.Location.Parent.ParentId == attrFilters.LocationId.Value));
             }
-
-            if (!string.IsNullOrEmpty(attrFilters.CategorySlug))
-                query = query.Where(a => a.Subcategory.Category.Slug == attrFilters.CategorySlug);
-
-            if (attrFilters.CategoryId.HasValue)
-                query = query.Where(a => a.Subcategory.CategoryId == attrFilters.CategoryId.Value);
-
-            if (!string.IsNullOrEmpty(attrFilters.TagIds))
-            {
-                var tagIdList = attrFilters.TagIds.Split(',').Select(id => Guid.Parse(id.Trim())).ToList();
-                query = query.Where(a => a.Tags.Any(at => tagIdList.Contains(at.TagId)));
-            }
-            else if (attrFilters.TagId.HasValue)
-            {
-                query = query.Where(a => a.Tags.Any(at => at.TagId == attrFilters.TagId.Value));
-            }
-
-            if (attrFilters.SubcategoryId.HasValue)
-                query = query.Where(a => a.SubcategoryId == attrFilters.SubcategoryId.Value);
 
             if (!string.IsNullOrEmpty(attrFilters.DifficultyLevels))
             {
@@ -150,7 +104,7 @@ public class AttractionDataService : IAttractionDataService
 
             if (attrFilters.MinRating.HasValue)
                 query = query.Where(a => a.RatingAverage >= attrFilters.MinRating.Value);
-            
+
             if (attrFilters.MinPrice.HasValue)
                 query = query.Where(a => a.ProductOptions.Any(po => po.PriceTiers.Any(pt => pt.Price >= attrFilters.MinPrice.Value)));
 
@@ -159,7 +113,7 @@ public class AttractionDataService : IAttractionDataService
         }
 
         var totalCount = await query.CountAsync();
-        
+
         var items = await query.OrderByDescending(x => x.CreatedAt)
                                .Skip(filters.Offset)
                                .Take(filters.PageSize)
@@ -170,15 +124,8 @@ public class AttractionDataService : IAttractionDataService
         foreach (var node in nodes)
         {
             var entity = items.First(i => i.Id == node.Id);
-            var prices = entity.ProductOptions
-                               .SelectMany(po => po.PriceTiers)
-                               .Select(pt => pt.Price)
-                               .ToList();
-
-            if (prices.Any())
-            {
-                node.StartingPrice = prices.Min();
-            }
+            var prices = entity.ProductOptions.SelectMany(po => po.PriceTiers).Select(pt => pt.Price).ToList();
+            if (prices.Any()) node.StartingPrice = prices.Min();
             node.ModalityCount = entity.ProductOptions.Count;
         }
 
@@ -207,13 +154,7 @@ public class AttractionDataService : IAttractionDataService
     {
         return await _unitOfWork.Attractions.Query()
             .Include(a => a.Location).ThenInclude(l => l!.Parent).ThenInclude(p => p!.Parent)
-            .Include(a => a.Subcategory).ThenInclude(s => s!.Category)
-            .Include(a => a.Media)
-            .Include(a => a.Tags).ThenInclude(t => t.Tag)
-            .Include(a => a.Inclusions).ThenInclude(i => i!.InclusionItem)
-            .Include(a => a.Itineraries).ThenInclude(i => i.Stops)
-            .Include(a => a.ProductOptions)
-                .ThenInclude(p => p.PriceTiers)
+            .Include(a => a.ProductOptions).ThenInclude(p => p.PriceTiers)
             .FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
     }
 
@@ -224,7 +165,7 @@ public class AttractionDataService : IAttractionDataService
 
         existing.Name = attraction.Name;
         existing.LocationId = attraction.LocationId;
-        existing.SubcategoryId = attraction.SubcategoryId;
+        existing.ImageUrl = attraction.ImageUrl;
         existing.DescriptionShort = attraction.DescriptionShort;
         existing.DescriptionFull = attraction.DescriptionFull;
         existing.Address = attraction.Address;

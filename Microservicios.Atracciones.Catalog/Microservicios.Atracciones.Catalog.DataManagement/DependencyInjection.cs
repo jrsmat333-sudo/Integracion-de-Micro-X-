@@ -11,21 +11,17 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDataManagementServices(this IServiceCollection services)
     {
-        // 1. Configurar Mapster
         var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
         typeAdapterConfig.Scan(Assembly.GetExecutingAssembly());
-        
+
         services.AddSingleton(typeAdapterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
 
-        // 2. Registrar Data Services
         services.AddScoped<IAttractionDataService, AttractionDataService>();
         services.AddScoped<IInventoryDataService, InventoryDataService>();
         services.AddScoped<ILocationDataService, LocationDataService>();
-        services.AddScoped<ICategoryDataService, CategoryDataService>();
         services.AddScoped<IMasterDataDataService, MasterDataDataService>();
 
         return services;
     }
 }
-

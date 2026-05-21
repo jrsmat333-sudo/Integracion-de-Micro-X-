@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Microservicios.Atracciones.Catalog.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a56db19bac61be3edff194ba4aa00e6edcd3eb54")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4b92317a1e02463a1a82da9c76c501870bf252b7")]
 [assembly: System.Reflection.AssemblyProductAttribute("Microservicios.Atracciones.Catalog.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Microservicios.Atracciones.Catalog.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
