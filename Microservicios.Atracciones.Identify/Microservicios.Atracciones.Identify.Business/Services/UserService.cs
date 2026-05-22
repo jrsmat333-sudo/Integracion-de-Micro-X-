@@ -122,7 +122,7 @@ public class UserService : IUserService
         var user = await _unitOfWork.Users.GetByIdAsync(id);
         if (user == null) return false;
 
-        user.IsActive = false;
+        _unitOfWork.Users.Delete(user);
         await _unitOfWork.CompleteAsync();
         return true;
     }
