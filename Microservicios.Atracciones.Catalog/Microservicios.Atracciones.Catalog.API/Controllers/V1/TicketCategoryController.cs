@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microservicios.Atracciones.Catalog.Business.DTOs.Common;
 using Microservicios.Atracciones.Catalog.Business.DTOs.Master;
@@ -32,6 +33,7 @@ public class TicketCategoryController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateTicketCategoryRequest request)
     {
         var id = await _masterData.CreateTicketCategoryAsync(request);
@@ -39,6 +41,7 @@ public class TicketCategoryController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Update(Guid id, [FromBody] CreateTicketCategoryRequest request)
     {
         var success = await _masterData.UpdateTicketCategoryAsync(id, request);
@@ -47,6 +50,7 @@ public class TicketCategoryController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var success = await _masterData.DeleteTicketCategoryAsync(id);

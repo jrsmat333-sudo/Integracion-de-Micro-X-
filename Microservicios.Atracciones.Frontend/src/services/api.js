@@ -142,3 +142,89 @@ export const validateClient = (docNumber) =>
 
 export const getLocations = () =>
   request('GET', '/api/v1/location')
+
+export const createLocation = (data) =>
+  request('POST', '/api/v1/location', data)
+
+export const updateLocation = (id, data) =>
+  request('PUT', `/api/v1/location/${id}`, data)
+
+export const deleteLocation = (id) =>
+  request('DELETE', `/api/v1/location/${id}`)
+
+// ── Attractions  →  /api/v1/attraction ──────────────────────────────────────
+
+export const getTopAttractions = (count = 5) =>
+  request('GET', `/api/v1/attraction/top?count=${count}`)
+
+export const getAttractions = (params = {}) => {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
+  ).toString()
+  return request('GET', `/api/v1/attraction${qs ? `?${qs}` : ''}`)
+}
+
+export const getAttractionManagement = (params = {}) => {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
+  ).toString()
+  return request('GET', `/api/v1/attraction/management${qs ? `?${qs}` : ''}`)
+}
+
+export const getAttractionBySlug = (slug) =>
+  request('GET', `/api/v1/attraction/${slug}`)
+
+export const getAttractionComplete = (id) =>
+  request('GET', `/api/v1/attraction/${id}/complete`)
+
+export const createAttraction = (data) =>
+  request('POST', '/api/v1/attraction', data)
+
+export const createCompleteAttraction = (data) =>
+  request('POST', '/api/v1/attraction/complete', data)
+
+export const updateAttraction = (id, data) =>
+  request('PUT', `/api/v1/attraction/${id}`, data)
+
+export const deleteAttraction = (id) =>
+  request('DELETE', `/api/v1/attraction/${id}`)
+
+export const toggleAttractionStatus = (id, isPublished) =>
+  request('PATCH', `/api/v1/attraction/${id}/status`, { isPublished })
+
+export const toggleAttractionActive = (id, isActive) =>
+  request('PATCH', `/api/v1/attraction/${id}/active`, { isActive })
+
+// ── Product Options  →  /api/v1/productoption ───────────────────────────────
+
+export const getProductOptionsByAttraction = (attractionId) =>
+  request('GET', `/api/v1/productoption/by-attraction/${attractionId}`)
+
+export const getProductOptionById = (id) =>
+  request('GET', `/api/v1/productoption/${id}`)
+
+export const createProductOption = (data) =>
+  request('POST', '/api/v1/productoption', data)
+
+export const updateProductOption = (id, data) =>
+  request('PUT', `/api/v1/productoption/${id}`, data)
+
+export const toggleProductOption = (id, isActive) =>
+  request('PATCH', `/api/v1/productoption/${id}/toggle`, isActive)
+
+export const deleteProductOption = (id) =>
+  request('DELETE', `/api/v1/productoption/${id}`)
+
+// ── Ticket Categories  →  /api/v1/ticketcategory ────────────────────────────
+
+export const getTicketCategories = () =>
+  request('GET', '/api/v1/ticketcategory')
+
+export const createTicketCategory = (data) =>
+  request('POST', '/api/v1/ticketcategory', data)
+
+export const updateTicketCategory = (id, data) =>
+  request('PUT', `/api/v1/ticketcategory/${id}`, data)
+
+export const deleteTicketCategory = (id) =>
+  request('DELETE', `/api/v1/ticketcategory/${id}`)

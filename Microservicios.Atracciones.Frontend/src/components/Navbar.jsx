@@ -136,10 +136,6 @@ export default function Navbar({ user, onOpenAuth, onLogout, onOpenProfile }) {
                       Crear cuenta
                     </DropItem>
                     <div className="border-t border-cominca-border my-1" />
-                    <DropItem onClick={() => { onOpenAuth('admin'); setDropOpen(false) }}>
-                      Acceso Administrador
-                    </DropItem>
-                    <div className="border-t border-cominca-border my-1" />
                     <DropItem decorative>Soporte</DropItem>
                     <DropItem decorative>Apariencia</DropItem>
                   </>
