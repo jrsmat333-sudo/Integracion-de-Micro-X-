@@ -37,12 +37,17 @@ export default {
           '0%':   { opacity: '0', transform: 'translateY(12px) scale(0.97)' },
           '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
+        kenBurns: {
+          '0%':   { transform: 'scale(1) translate(0, 0)' },
+          '100%': { transform: 'scale(1.12) translate(1.5%, 1%)' },
+        },
       },
       animation: {
         fadeSlideDown: 'fadeSlideDown 0.2s ease-out',
         fadeSlideUp:   'fadeSlideUp 0.3s ease-out',
         fadeIn:        'fadeIn 0.25s ease-out',
         toastIn:       'toastIn 0.3s ease-out',
+        kenBurns:      'kenBurns 12s ease-in-out infinite alternate',
       },
     },
   },

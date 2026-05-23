@@ -18,4 +18,9 @@ public interface IInventoryDataService
     /// Decrementa la capacidad disponible de un slot. Admite valores negativos para incrementar.
     /// </summary>
     Task<bool> DecrementSlotCapacityAsync(Guid slotId, short quantity);
+
+    /// <summary>
+    /// Crea un nuevo slot de disponibilidad para una ProductOption.
+    /// </summary>
+    Task<Guid> CreateSlotAsync(Guid productOptionId, DateOnly slotDate, TimeOnly startTime, TimeOnly? endTime, short capacityTotal, string? notes);
 }

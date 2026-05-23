@@ -5,7 +5,22 @@ import UserProfile from './components/UserProfile'
 import AdminPanel from './components/AdminPanel'
 import AttractionDetail from './components/AttractionDetail'
 import { getCurrentUser, removeToken, getTopAttractions, getAttractions } from './services/api'
-import logo from './assets/keo-arc.jpg'
+
+// Carousel images
+import img1 from './assets/Carrusel/img1.JPG'
+import img4 from './assets/Carrusel/img4.jpg'
+import img5 from './assets/Carrusel/img5.jpg'
+import imagen6 from './assets/Carrusel/imagen6.jpg'
+import img7 from './assets/Carrusel/img7.jpg'
+import img9 from './assets/Carrusel/img9.jpg'
+import carouselLogo from './assets/Carrusel/logo.png'
+
+// Section assets
+import imgSeccion3 from './assets/IMGSECCION3.jpeg'
+import mapaEc from './assets/mapaec.png'
+
+const CAROUSEL_IMAGES = [img1, img4, img5, imagen6, img7, img9]
+const CAROUSEL_INTERVAL = 6000
 
 // ── Attraction Card ───────────────────────────────────────────────────────────
 
@@ -80,6 +95,140 @@ function AttractionGridSkeleton({ count = 4 }) {
   )
 }
 
+// ── Section 1: Hero Carousel ──────────────────────────────────────────────────
+
+function HeroCarousel() {
+  const [current, setCurrent] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent(c => (c + 1) % CAROUSEL_IMAGES.length)
+    }, CAROUSEL_INTERVAL)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <section className="h-screen w-full relative overflow-hidden">
+      {CAROUSEL_IMAGES.map((src, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 transition-opacity duration-1000"
+          style={{ opacity: i === current ? 1 : 0 }}
+        >
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover animate-kenBurns"
+          />
+        </div>
+      ))}
+
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/50" />
+
+      {/* Center content */}
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6">
+        <img
+          src={carouselLogo}
+          alt="Ady Cats"
+          className="w-40 sm:w-56 mb-8 drop-shadow-2xl object-contain"
+        />
+        <h1 className="font-serif text-4xl sm:text-6xl font-light text-white leading-tight mb-4 drop-shadow-lg">
+          Descubre el mundo a tu ritmo
+        </h1>
+        <p className="font-sans text-white/80 text-sm sm:text-base max-w-xl leading-relaxed drop-shadow">
+          Experiencias únicas diseñadas para los viajeros que aprecian las cosas simples — Proyecto de Microservicios
+        </p>
+      </div>
+
+      {/* Slide indicators */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+        {CAROUSEL_IMAGES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`h-0.5 transition-all duration-500 ${
+              i === current ? 'w-8 bg-white' : 'w-2 bg-white/40'
+            }`}
+            aria-label={`Ir a imagen ${i + 1}`}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ── Section 2: General Info ───────────────────────────────────────────────────
+
+function InfoSection() {
+  return (
+    <section className="bg-[#faf9f6] py-24 px-6 flex flex-col items-center justify-center min-h-[50vh] text-center">
+      <h2 className="font-serif text-4xl sm:text-5xl font-light text-cominca-charcoal mb-10 max-w-3xl leading-tight">
+        Discover the essence of Ecuador
+      </h2>
+      <div className="max-w-2xl space-y-6 font-sans text-cominca-sand text-base leading-relaxed">
+        <p>
+          Nestled between the Andes, the Amazon, the Pacific Coast, and the Galápagos Islands,
+          Ecuador offers an unforgettable journey filled with culture, history, and breathtaking
+          natural beauty.
+        </p>
+        <p>
+          We create authentic experiences that connect travelers with Ecuador&apos;s rich traditions,
+          vibrant communities, and extraordinary landscapes, while blending comfort and modern
+          hospitality with the country&apos;s timeless charm.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ── Section 3: Full-screen Separator Image ────────────────────────────────────
+
+function SeparatorSection() {
+  return (
+    <section
+      className="h-screen w-full bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${imgSeccion3})` }}
+    />
+  )
+}
+
+// ── Section 4: Map + Text ─────────────────────────────────────────────────────
+
+function MapSection() {
+  return (
+    <section className="bg-white py-24 px-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        {/* Left: map image */}
+        <div className="flex items-center justify-center">
+          <img
+            src={mapaEc}
+            alt="Mapa de Ecuador"
+            className="max-w-sm w-full object-contain"
+          />
+        </div>
+
+        {/* Right: text */}
+        <div>
+          <h2 className="font-serif text-7xl sm:text-8xl font-light text-cominca-charcoal mb-6 leading-none">
+            Ecuador
+          </h2>
+          <p className="font-sans text-cominca-charcoal text-base leading-relaxed mb-5">
+            A country of breathtaking diversity where the Andes, the Amazon, the Pacific Coast, and
+            the Galápagos Islands come together to create unforgettable experiences filled with
+            culture, history, and natural beauty.
+          </p>
+          <p className="font-sans text-cominca-sand text-sm leading-relaxed">
+            A land of vibrant traditions, stunning landscapes, and timeless charm where every
+            destination tells a unique story.
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ── Landing Page ──────────────────────────────────────────────────────────────
 
 function LandingPage({ onOpenAuth, onAttractionSelect }) {
@@ -117,53 +266,12 @@ function LandingPage({ onOpenAuth, onAttractionSelect }) {
     : allAttractions
 
   return (
-    <div className="min-h-screen flex flex-col">
-
-      {/* Hero */}
-      <section className="flex-shrink-0 flex flex-col items-center justify-center px-6 text-center pt-24 pb-16 relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `repeating-linear-gradient(45deg, #1F1E1C 0, #1F1E1C 1px, transparent 0, transparent 50%)`,
-            backgroundSize: '20px 20px',
-          }}
-        />
-
-        <div className="relative mb-8">
-          <div className="w-20 h-20 border border-cominca-border rounded-sm mx-auto flex items-center justify-center bg-white shadow-sm">
-            <img src={logo} alt="Keo Arc" className="w-14 h-14 object-contain" />
-          </div>
-          <div className="absolute -inset-3 border border-cominca-border/30 rounded-sm pointer-events-none" />
-        </div>
-
-        <p className="label-elegant mb-4 text-cominca-sand">Atracciones · Experiencias · Destinos</p>
-
-        <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-light text-cominca-charcoal leading-tight mb-6 max-w-3xl">
-          Descubre el mundo
-          <br />
-          <em className="text-cominca-forest not-italic">a tu ritmo</em>
-        </h1>
-
-        <p className="font-sans text-cominca-sand text-base sm:text-lg font-light max-w-xl leading-relaxed mb-10">
-          Experiencias únicas diseñadas para los viajeros que aprecian las cosas bien hechas.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 items-center">
-          <button
-            onClick={() => onOpenAuth('register')}
-            className="btn-primary px-8 py-3 text-sm tracking-widest"
-          >
-            Registrarse
-          </button>
-          <button
-            onClick={() => onOpenAuth('login')}
-            className="btn-ghost px-8 py-3 text-sm tracking-widest"
-          >
-            Iniciar sesión
-          </button>
-        </div>
-      </section>
+    <div>
+      {/* New sections */}
+      <HeroCarousel />
+      <InfoSection />
+      <SeparatorSection />
+      <MapSection />
 
       {/* Top Atracciones */}
       {(loadingTop || topAttractions.length > 0) && (

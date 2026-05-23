@@ -23,3 +23,25 @@ public class AvailabilityRequest
     public DateTime StartDate { get; set; } = DateTime.UtcNow;
     public DateTime EndDate { get; set; } = DateTime.UtcNow.AddDays(30);
 }
+
+/// <summary>Request para crear un slot de disponibilidad desde el panel de administración.</summary>
+public class CreateSlotRequest
+{
+    /// <summary>ID de la ProductOption a la que pertenece este slot.</summary>
+    public Guid ProductOptionId { get; set; }
+
+    /// <summary>Fecha del slot (yyyy-MM-dd).</summary>
+    public DateOnly SlotDate { get; set; }
+
+    /// <summary>Hora de inicio (HH:mm).</summary>
+    public TimeOnly StartTime { get; set; }
+
+    /// <summary>Hora de fin (HH:mm). Opcional.</summary>
+    public TimeOnly? EndTime { get; set; }
+
+    /// <summary>Capacidad total de personas.</summary>
+    public short CapacityTotal { get; set; }
+
+    /// <summary>Notas internas opcionales.</summary>
+    public string? Notes { get; set; }
+}

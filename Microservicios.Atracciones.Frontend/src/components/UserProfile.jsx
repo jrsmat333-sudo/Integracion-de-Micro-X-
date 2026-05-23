@@ -1,7 +1,110 @@
 import { useState, useEffect } from 'react'
-import { getClientById, updateClient, getLocations } from '../services/api'
+import { getClientById, updateClient, getLocations, getMisReservas, cancelBooking, getMyInvoices } from '../services/api'
 import Toast from './Toast'
 import iconoCambioPerfil from '../assets/icono-cambioperfil.jpg'
+import { pdf } from '@react-pdf/renderer'
+import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer'
+import keoLogo from '../assets/keo-arc.jpg'
+
+// ── PDF Invoice Document ──────────────────────────────────────────────────────
+
+const pdfStyles = StyleSheet.create({
+  page:       { padding: 40, fontFamily: 'Helvetica', fontSize: 10, color: '#1F1E1C' },
+  header:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, borderBottom: '1 solid #E8E4DF', paddingBottom: 16 },
+  logo:       { width: 48, height: 48, objectFit: 'contain' },
+  companyCol: { alignItems: 'flex-end' },
+  companyName:{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#2B3E2F' },
+  subtitle:   { fontSize: 8, color: '#A89886', marginTop: 2 },
+  section:    { marginBottom: 14 },
+  label:      { fontSize: 8, color: '#A89886', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+  value:      { fontSize: 10 },
+  row:        { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5, borderBottom: '1 solid #E8E4DF' },
+  bold:       { fontFamily: 'Helvetica-Bold' },
+  total:      { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, marginTop: 4 },
+  footer:     { position: 'absolute', bottom: 30, left: 40, right: 40, textAlign: 'center', fontSize: 8, color: '#A89886' },
+})
+
+function InvoicePDF({ inv }) {
+  const details = inv.details ?? inv.items ?? []
+  return (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        {/* Header */}
+        <View style={pdfStyles.header}>
+          <Image src={keoLogo} style={pdfStyles.logo} />
+          <View style={pdfStyles.companyCol}>
+            <Text style={pdfStyles.companyName}>Keo Arc — Ady Cats</Text>
+            <Text style={pdfStyles.subtitle}>Sistema de Reservas · Ecuador</Text>
+            <Text style={[pdfStyles.subtitle, { marginTop: 4 }]}>FACTURA Nº {inv.invoiceNumber}</Text>
+          </View>
+        </View>
+
+        {/* Client data */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.label}>Datos del cliente</Text>
+          <Text style={pdfStyles.value}>{inv.customerName}</Text>
+          {inv.taxId  && <Text style={pdfStyles.value}>RUC/CI: {inv.taxId}</Text>}
+          {inv.email  && <Text style={pdfStyles.value}>{inv.email}</Text>}
+          {inv.address && <Text style={pdfStyles.value}>{inv.address}</Text>}
+        </View>
+
+        {/* Invoice info */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.label}>Información de la factura</Text>
+          <Text style={pdfStyles.value}>Fecha: {new Date(inv.createdAt).toLocaleDateString('es-EC')}</Text>
+          <Text style={pdfStyles.value}>Moneda: {inv.currencyCode ?? 'USD'}</Text>
+        </View>
+
+        {/* Line items */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.label}>Detalle</Text>
+          <View style={[pdfStyles.row, { borderTop: '1 solid #E8E4DF' }]}>
+            <Text style={[pdfStyles.value, pdfStyles.bold, { flex: 3 }]}>Descripción</Text>
+            <Text style={[pdfStyles.value, pdfStyles.bold, { flex: 1, textAlign: 'right' }]}>Cant.</Text>
+            <Text style={[pdfStyles.value, pdfStyles.bold, { flex: 1, textAlign: 'right' }]}>Precio</Text>
+            <Text style={[pdfStyles.value, pdfStyles.bold, { flex: 1, textAlign: 'right' }]}>Total</Text>
+          </View>
+          {details.map((d, i) => (
+            <View key={i} style={pdfStyles.row}>
+              <Text style={[pdfStyles.value, { flex: 3 }]}>{d.description}</Text>
+              <Text style={[pdfStyles.value, { flex: 1, textAlign: 'right' }]}>{d.quantity}</Text>
+              <Text style={[pdfStyles.value, { flex: 1, textAlign: 'right' }]}>${Number(d.unitPrice).toFixed(2)}</Text>
+              <Text style={[pdfStyles.value, { flex: 1, textAlign: 'right' }]}>${Number(d.totalItem ?? d.unitPrice * d.quantity).toFixed(2)}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Totals */}
+        <View>
+          <View style={pdfStyles.total}>
+            <Text style={pdfStyles.value}>Subtotal</Text>
+            <Text style={pdfStyles.value}>${Number(inv.subtotal ?? 0).toFixed(2)}</Text>
+          </View>
+          <View style={pdfStyles.total}>
+            <Text style={pdfStyles.value}>IVA</Text>
+            <Text style={pdfStyles.value}>${Number(inv.taxAmount ?? 0).toFixed(2)}</Text>
+          </View>
+          <View style={[pdfStyles.total, { borderTop: '1.5 solid #1F1E1C' }]}>
+            <Text style={[pdfStyles.value, pdfStyles.bold, { fontSize: 12 }]}>TOTAL</Text>
+            <Text style={[pdfStyles.value, pdfStyles.bold, { fontSize: 12 }]}>${Number(inv.total).toFixed(2)} {inv.currencyCode ?? 'USD'}</Text>
+          </View>
+        </View>
+
+        <Text style={pdfStyles.footer}>Generado por Keo Arc — Proyecto Microservicios © 2026</Text>
+      </Page>
+    </Document>
+  )
+}
+
+async function downloadInvoicePDF(inv) {
+  const blob = await pdf(<InvoicePDF inv={inv} />).toBlob()
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `factura-${inv.invoiceNumber ?? inv.id}.pdf`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 // ── Edit-mode icon animation ──────────────────────────────────────────────────
 
@@ -104,9 +207,154 @@ function SectionLabel({ children }) {
   )
 }
 
+// ── My Bookings Tab ───────────────────────────────────────────────────────────
+
+const STATUS_LABEL = { Pending: 'Pendiente', Confirmed: 'Confirmada', Completed: 'Completada', Cancelled: 'Cancelada' }
+const STATUS_COLOR = { Pending: 'text-amber-600 bg-amber-50', Confirmed: 'text-cominca-forest bg-emerald-50', Completed: 'text-blue-600 bg-blue-50', Cancelled: 'text-red-500 bg-red-50' }
+
+function MyBookingsTab({ userId, onToast }) {
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [cancelling, setCancelling] = useState(null)
+
+  const load = () => {
+    if (!userId) return
+    setLoading(true)
+    getMisReservas()
+      .then(raw => {
+        const d = raw?.data ?? raw
+        setBookings(Array.isArray(d) ? d : [])
+      })
+      .catch(() => setBookings([]))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [userId])
+
+  async function handleCancel(bookingId) {
+    if (!window.confirm('¿Cancelar esta reserva?')) return
+    setCancelling(bookingId)
+    try {
+      await cancelBooking(bookingId)
+      onToast({ message: 'Reserva cancelada', type: 'success' })
+      load()
+    } catch (err) {
+      onToast({ message: err.message || 'Error al cancelar', type: 'error' })
+    } finally {
+      setCancelling(null)
+    }
+  }
+
+  if (loading) return <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-cominca-border/50 animate-pulse" />)}</div>
+  if (!bookings.length) return <p className="font-sans text-cominca-sand text-sm py-10 text-center">No tienes reservas aún.</p>
+
+  return (
+    <div className="space-y-4">
+      {bookings.map(b => {
+        const date   = b.activityDate ? new Date(b.activityDate) : null
+        const status = b.status ?? 'Unknown'
+        const canCancel = status === 'Pending' || status === 'Confirmed'
+        return (
+          <div key={b.bookingId ?? b.id} className="border border-cominca-border p-4 bg-white">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className={`inline-flex items-center px-2 py-0.5 text-xs font-sans font-medium rounded-sm ${STATUS_COLOR[status] ?? 'text-cominca-sand bg-cominca-light'}`}>
+                    {STATUS_LABEL[status] ?? status}
+                  </span>
+                  <span className="font-mono text-xs text-cominca-sand">PNR: {b.pnrCode}</span>
+                </div>
+                <p className="font-serif text-base font-light text-cominca-charcoal leading-tight">{b.attractionName ?? 'Atracción'}</p>
+                {date && (
+                  <p className="font-sans text-xs text-cominca-sand mt-0.5">
+                    {date.toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <p className="font-sans font-semibold text-cominca-charcoal">${Number(b.totalAmount ?? 0).toFixed(2)}</p>
+                <p className="text-xs text-cominca-sand">{b.currency ?? 'USD'}</p>
+                {canCancel && (
+                  <button
+                    onClick={() => handleCancel(b.bookingId ?? b.id)}
+                    disabled={cancelling === (b.bookingId ?? b.id)}
+                    className="mt-2 text-xs font-sans text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {cancelling === (b.bookingId ?? b.id) ? 'Cancelando…' : 'Cancelar reserva'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── My Invoices Tab ───────────────────────────────────────────────────────────
+
+function MyInvoicesTab() {
+  const [invoices, setInvoices] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [downloading, setDownloading] = useState(null)
+
+  useEffect(() => {
+    setLoading(true)
+    getMyInvoices()
+      .then(raw => {
+        const d = raw?.data ?? raw
+        setInvoices(Array.isArray(d) ? d : [])
+      })
+      .catch(() => setInvoices([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleDownload(inv) {
+    setDownloading(inv.id)
+    try {
+      await downloadInvoicePDF(inv)
+    } finally {
+      setDownloading(null)
+    }
+  }
+
+  if (loading) return <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-cominca-border/50 animate-pulse" />)}</div>
+  if (!invoices.length) return <p className="font-sans text-cominca-sand text-sm py-10 text-center">No tienes facturas aún.</p>
+
+  return (
+    <div className="space-y-3">
+      {invoices.map(inv => (
+        <div key={inv.id} className="border border-cominca-border p-4 bg-white flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-xs text-cominca-sand">{inv.invoiceNumber}</p>
+            <p className="font-sans text-sm font-medium text-cominca-charcoal mt-0.5">{inv.customerName}</p>
+            <p className="font-sans text-xs text-cominca-sand">
+              {new Date(inv.createdAt).toLocaleDateString('es-EC')}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="font-sans font-semibold text-cominca-charcoal">${Number(inv.total).toFixed(2)} {inv.currencyCode ?? 'USD'}</p>
+            <button
+              onClick={() => handleDownload(inv)}
+              disabled={downloading === inv.id}
+              className="mt-1.5 flex items-center gap-1.5 text-xs font-sans text-cominca-forest hover:text-cominca-charcoal transition-colors disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              {downloading === inv.id ? 'Generando…' : 'Descargar PDF'}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
-const TABS = ['Personal details', 'Notifications', 'Saved Cards']
+const TABS = ['Personal details', 'Mis Reservas', 'Mis Facturas', 'Notifications', 'Saved Cards']
 
 const DISABLED_FIELD = 'input-elegant disabled:bg-cominca-light disabled:text-cominca-sand disabled:cursor-not-allowed'
 const DISABLED_SELECT = 'input-elegant cursor-pointer disabled:bg-cominca-light disabled:text-cominca-sand disabled:cursor-not-allowed'
@@ -258,7 +506,7 @@ export default function UserProfile({ user, onClose }) {
               label={tab}
               active={activeTab === tab}
               onClick={() => setActiveTab(tab)}
-              decorative={tab !== 'Personal details'}
+              decorative={tab === 'Notifications' || tab === 'Saved Cards'}
             />
           ))}
         </nav>
@@ -482,7 +730,17 @@ export default function UserProfile({ user, onClose }) {
             )
           )}
 
-          {activeTab !== 'Personal details' && (
+          {/* ── Mis Reservas ─────────────────────────────────── */}
+          {activeTab === 'Mis Reservas' && (
+            <MyBookingsTab userId={user?.id} onToast={setToast} />
+          )}
+
+          {/* ── Mis Facturas ─────────────────────────────────── */}
+          {activeTab === 'Mis Facturas' && (
+            <MyInvoicesTab />
+          )}
+
+          {(activeTab === 'Notifications' || activeTab === 'Saved Cards') && (
             <div className="flex items-center justify-center py-24 text-cominca-sand">
               <p className="font-serif text-2xl font-light italic">Próximamente</p>
             </div>

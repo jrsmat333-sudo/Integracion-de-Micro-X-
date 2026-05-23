@@ -9,6 +9,9 @@ import {
   toggleAttractionStatus, toggleAttractionActive,
   getProductOptionsByAttraction, createProductOption, updateProductOption,
   toggleProductOption, deleteProductOption,
+  getAdminBookings, getBookingByPnr, getBookingDetail, cancelAdminBooking,
+  getAdminInvoices, voidInvoice,
+  createInventorySlot,
 } from '../services/api'
 import Toast from './Toast'
 import logo from '../assets/keo-arc.jpg'
@@ -155,6 +158,28 @@ function IconLayers() {
   return (
     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+    </svg>
+  )
+}
+function IconCalendar() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  )
+}
+function IconBookmark() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+    </svg>
+  )
+}
+function IconReceipt() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
     </svg>
   )
 }
@@ -1686,22 +1711,356 @@ function AttractionsSection({ onToast, userRole }) {
   )
 }
 
+// ── AdminInventory Section ────────────────────────────────────────────────────
+
+function AdminInventorySection({ onToast }) {
+  const [form, setForm] = useState({
+    productOptionId: '', slotDate: '', startTime: '', endTime: '', capacityTotal: 10, notes: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
+
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      await createInventorySlot({
+        productOptionId: form.productOptionId,
+        slotDate: form.slotDate,
+        startTime: form.startTime + ':00',
+        endTime:   form.endTime  ? form.endTime + ':00' : null,
+        capacityTotal: Number(form.capacityTotal),
+        notes: form.notes || null,
+      })
+      onToast('Slot de disponibilidad creado correctamente', 'success')
+      setForm({ productOptionId: '', slotDate: '', startTime: '', endTime: '', capacityTotal: 10, notes: '' })
+    } catch (err) {
+      onToast(err.message || 'Error al crear el slot', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="mb-8">
+        <p className="label-elegant mb-1">Operaciones</p>
+        <h1 className="font-serif text-3xl font-light text-cominca-charcoal">Gestión de Cupos</h1>
+      </div>
+      <div className="max-w-xl bg-white border border-cominca-border p-8">
+        <p className="label-elegant mb-5">Nuevo slot de disponibilidad</p>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="label-elegant block mb-1.5">ID de ProductOption</label>
+            <input required className="input-elegant w-full" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value={form.productOptionId} onChange={set('productOptionId')} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label-elegant block mb-1.5">Fecha</label>
+              <input required type="date" className="input-elegant w-full" value={form.slotDate} onChange={set('slotDate')} />
+            </div>
+            <div>
+              <label className="label-elegant block mb-1.5">Capacidad total</label>
+              <input required type="number" min="1" className="input-elegant w-full" value={form.capacityTotal} onChange={set('capacityTotal')} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label-elegant block mb-1.5">Hora inicio</label>
+              <input required type="time" className="input-elegant w-full" value={form.startTime} onChange={set('startTime')} />
+            </div>
+            <div>
+              <label className="label-elegant block mb-1.5">Hora fin (opcional)</label>
+              <input type="time" className="input-elegant w-full" value={form.endTime} onChange={set('endTime')} />
+            </div>
+          </div>
+          <div>
+            <label className="label-elegant block mb-1.5">Notas internas</label>
+            <input className="input-elegant w-full" placeholder="Opcional" value={form.notes} onChange={set('notes')} />
+          </div>
+          <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-40">
+            {submitting ? 'Creando…' : 'Crear slot'}
+          </button>
+        </form>
+      </div>
+    </>
+  )
+}
+
+// ── AdminBookings Section ─────────────────────────────────────────────────────
+
+const BOOKING_STATUS = { 1: 'Pendiente', 2: 'Confirmada', 3: 'Completada', 4: 'Cancelada' }
+const BOOKING_STATUS_COLOR = { 1: 'text-amber-600', 2: 'text-cominca-forest', 3: 'text-blue-600', 4: 'text-red-500' }
+
+function AdminBookingsSection({ onToast }) {
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [pnrSearch, setPnrSearch] = useState('')
+  const [selectedDetail, setSelectedDetail] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    getAdminBookings()
+      .then(raw => {
+        const d = raw?.data ?? raw
+        const items = Array.isArray(d) ? d : (d?.items ?? d?.data ?? [])
+        setBookings(items)
+      })
+      .catch(() => setBookings([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  async function handlePnrSearch(e) {
+    e.preventDefault()
+    if (!pnrSearch.trim()) return
+    setDetailLoading(true)
+    try {
+      const raw = await getBookingByPnr(pnrSearch.trim().toUpperCase())
+      const d   = raw?.data ?? raw
+      setSelectedDetail(d)
+    } catch (err) {
+      onToast(err.message || 'Reserva no encontrada', 'error')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  async function handleViewDetail(id) {
+    setDetailLoading(true)
+    try {
+      const raw = await getBookingDetail(id)
+      setSelectedDetail(raw?.data ?? raw)
+    } catch (err) {
+      onToast(err.message || 'Error al cargar detalle', 'error')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  async function handleForceCancel() {
+    if (!selectedDetail) return
+    if (!window.confirm('¿Forzar cancelación de esta reserva?')) return
+    setCancelling(true)
+    try {
+      const pnr = selectedDetail.pnrCode ?? selectedDetail.PnrCode
+      await cancelAdminBooking({ pnrCode: pnr, cancelReason: 'Cancelación forzada por administrador' })
+      onToast('Reserva cancelada', 'success')
+      setSelectedDetail(null)
+      load()
+    } catch (err) {
+      onToast(err.message || 'Error al cancelar', 'error')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <p className="label-elegant mb-1">Operaciones</p>
+          <h1 className="font-serif text-3xl font-light text-cominca-charcoal">Reservas</h1>
+        </div>
+        {/* PNR Search */}
+        <form onSubmit={handlePnrSearch} className="flex gap-2">
+          <input
+            className="input-elegant"
+            placeholder="Buscar por PNR…"
+            value={pnrSearch}
+            onChange={e => setPnrSearch(e.target.value)}
+          />
+          <button type="submit" disabled={detailLoading} className="btn-primary text-xs px-4">
+            {detailLoading ? '…' : 'Buscar'}
+          </button>
+        </form>
+      </div>
+
+      {/* Detail modal */}
+      {selectedDetail && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-cominca-charcoal/50 backdrop-blur-sm" onClick={() => setSelectedDetail(null)} />
+          <div className="relative bg-cominca-cream w-full max-w-xl shadow-2xl p-8 animate-fadeSlideUp max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setSelectedDetail(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center border border-cominca-border hover:bg-cominca-light">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <p className="label-elegant mb-4">Detalle de reserva</p>
+            <div className="space-y-3 text-sm font-sans">
+              <div className="flex justify-between"><span className="text-cominca-sand">PNR</span><span className="font-mono font-bold text-cominca-charcoal">{selectedDetail.pnrCode ?? selectedDetail.PnrCode}</span></div>
+              <div className="flex justify-between"><span className="text-cominca-sand">Estado</span><span>{selectedDetail.statusName ?? selectedDetail.status}</span></div>
+              <div className="flex justify-between"><span className="text-cominca-sand">Total</span><span className="font-medium">${Number(selectedDetail.totalAmount ?? 0).toFixed(2)} {selectedDetail.currencyCode ?? selectedDetail.currency}</span></div>
+              {selectedDetail.contactName && <div className="flex justify-between"><span className="text-cominca-sand">Contacto</span><span>{selectedDetail.contactName}</span></div>}
+              {selectedDetail.details?.length > 0 && (
+                <div className="border-t border-cominca-border pt-3 mt-2">
+                  <p className="label-elegant mb-2">Pasajeros</p>
+                  {selectedDetail.details.map((d, i) => (
+                    <p key={i} className="text-cominca-charcoal">{d.firstName} {d.lastName} — {d.priceTierLabel ?? d.tierNameSnapshot} · ${Number(d.unitPrice).toFixed(2)}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handleForceCancel}
+              disabled={cancelling}
+              className="mt-6 w-full py-2 text-sm font-sans font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-40"
+            >
+              {cancelling ? 'Cancelando…' : '⚠ Forzar Cancelación'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bookings table */}
+      {loading ? (
+        <div className="space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-12 bg-cominca-light animate-pulse" />)}</div>
+      ) : bookings.length === 0 ? (
+        <p className="font-sans text-cominca-sand text-sm py-12 text-center">No hay reservas registradas.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm font-sans border-collapse">
+            <thead>
+              <tr className="border-b border-cominca-border">
+                {['PNR','Atracción','Estado','Total','Fecha'].map(h => (
+                  <th key={h} className="text-left px-3 py-3 label-elegant text-cominca-sand font-normal">{h}</th>
+                ))}
+                <th className="px-3 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map(b => (
+                <tr key={b.id ?? b.bookingId} className="border-b border-cominca-border hover:bg-cominca-light/40 transition-colors">
+                  <td className="px-3 py-3 font-mono text-xs font-bold text-cominca-charcoal">{b.pnrCode}</td>
+                  <td className="px-3 py-3 text-cominca-charcoal max-w-[180px] truncate">{b.attractionName ?? '—'}</td>
+                  <td className={`px-3 py-3 font-medium ${BOOKING_STATUS_COLOR[b.statusId] ?? 'text-cominca-sand'}`}>{BOOKING_STATUS[b.statusId] ?? b.statusName}</td>
+                  <td className="px-3 py-3 text-cominca-charcoal">${Number(b.totalAmount ?? 0).toFixed(2)}</td>
+                  <td className="px-3 py-3 text-cominca-sand text-xs">{b.createdAt ? new Date(b.createdAt).toLocaleDateString('es-EC') : '—'}</td>
+                  <td className="px-3 py-3">
+                    <button onClick={() => handleViewDetail(b.id ?? b.bookingId)} className="text-xs text-cominca-forest hover:text-cominca-charcoal transition-colors">
+                      Ver detalle
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ── AdminBilling Section ──────────────────────────────────────────────────────
+
+function AdminBillingSection({ onToast }) {
+  const [invoices, setInvoices] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [voiding, setVoiding]   = useState(null)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    getAdminInvoices()
+      .then(raw => {
+        const d = raw?.data ?? raw
+        const items = Array.isArray(d) ? d : (d?.items ?? d?.data ?? [])
+        setInvoices(items)
+      })
+      .catch(() => setInvoices([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  async function handleVoid(id, invoiceNumber) {
+    if (!window.confirm(`¿Anular la factura ${invoiceNumber}? Esta acción no se puede deshacer.`)) return
+    setVoiding(id)
+    try {
+      await voidInvoice(id)
+      onToast('Factura anulada', 'success')
+      load()
+    } catch (err) {
+      onToast(err.message || 'Error al anular', 'error')
+    } finally {
+      setVoiding(null)
+    }
+  }
+
+  return (
+    <>
+      <div className="mb-8">
+        <p className="label-elegant mb-1">Operaciones</p>
+        <h1 className="font-serif text-3xl font-light text-cominca-charcoal">Facturación</h1>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-12 bg-cominca-light animate-pulse" />)}</div>
+      ) : invoices.length === 0 ? (
+        <p className="font-sans text-cominca-sand text-sm py-12 text-center">No hay facturas registradas.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm font-sans border-collapse">
+            <thead>
+              <tr className="border-b border-cominca-border">
+                {['Nº Factura','Cliente','Total','Moneda','Fecha'].map(h => (
+                  <th key={h} className="text-left px-3 py-3 label-elegant text-cominca-sand font-normal">{h}</th>
+                ))}
+                <th className="px-3 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map(inv => (
+                <tr key={inv.id} className="border-b border-cominca-border hover:bg-cominca-light/40 transition-colors">
+                  <td className="px-3 py-3 font-mono text-xs font-bold text-cominca-charcoal">{inv.invoiceNumber}</td>
+                  <td className="px-3 py-3 text-cominca-charcoal max-w-[200px] truncate">{inv.customerName}</td>
+                  <td className="px-3 py-3 text-cominca-charcoal font-medium">${Number(inv.total).toFixed(2)}</td>
+                  <td className="px-3 py-3 text-cominca-sand">{inv.currencyCode ?? 'USD'}</td>
+                  <td className="px-3 py-3 text-cominca-sand text-xs">{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-EC') : '—'}</td>
+                  <td className="px-3 py-3">
+                    <button
+                      onClick={() => handleVoid(inv.id, inv.invoiceNumber)}
+                      disabled={voiding === inv.id}
+                      className="text-xs font-sans text-red-500 hover:text-red-700 transition-colors disabled:opacity-40"
+                    >
+                      {voiding === inv.id ? 'Anulando…' : 'Anular'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ── Navigation groups ─────────────────────────────────────────────────────────
 
 const NAV_GROUPS = [
   {
     label: 'Gestión',
     items: [
-      { id: 'users',       label: 'Usuarios',     Icon: IconUsers   },
-      { id: 'clients',     label: 'Clientes',     Icon: IconClients },
+      { id: 'users',       label: 'Usuarios',     Icon: IconUsers    },
+      { id: 'clients',     label: 'Clientes',     Icon: IconClients  },
     ],
   },
   {
     label: 'Catálogo',
     items: [
-      { id: 'locations',   label: 'Locaciones',   Icon: IconMap     },
-      { id: 'categories',  label: 'Cat. Tickets', Icon: IconTag     },
-      { id: 'attractions', label: 'Atracciones',  Icon: IconStar    },
+      { id: 'locations',   label: 'Locaciones',   Icon: IconMap      },
+      { id: 'categories',  label: 'Cat. Tickets', Icon: IconTag      },
+      { id: 'attractions', label: 'Atracciones',  Icon: IconStar     },
+    ],
+  },
+  {
+    label: 'Operaciones',
+    items: [
+      { id: 'inventory',   label: 'Cupos',        Icon: IconCalendar },
+      { id: 'bookings',    label: 'Reservas',     Icon: IconBookmark },
+      { id: 'billing',     label: 'Facturación',  Icon: IconReceipt  },
     ],
   },
 ]
@@ -1766,11 +2125,14 @@ export default function AdminPanel({ user, onLogout }) {
       {/* ── Main ── */}
       <main className="flex-1 ml-56 p-10 min-h-screen">
         <ErrorBoundary>
-          {section === 'users'       && <UsersSection      onToast={showToast} />}
-          {section === 'clients'     && <ClientsSection    onToast={showToast} />}
-          {section === 'locations'   && <LocationsSection  onToast={showToast} />}
+          {section === 'users'       && <UsersSection            onToast={showToast} />}
+          {section === 'clients'     && <ClientsSection          onToast={showToast} />}
+          {section === 'locations'   && <LocationsSection        onToast={showToast} />}
           {section === 'categories'  && <TicketCategoriesSection onToast={showToast} />}
-          {section === 'attractions' && <AttractionsSection onToast={showToast} userRole={user?.role} />}
+          {section === 'attractions' && <AttractionsSection      onToast={showToast} userRole={user?.role} />}
+          {section === 'inventory'   && <AdminInventorySection   onToast={showToast} />}
+          {section === 'bookings'    && <AdminBookingsSection    onToast={showToast} />}
+          {section === 'billing'     && <AdminBillingSection     onToast={showToast} />}
         </ErrorBoundary>
       </main>
 

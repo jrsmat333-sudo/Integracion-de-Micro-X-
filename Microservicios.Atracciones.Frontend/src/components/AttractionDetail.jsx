@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getAttractionBySlug, getProductOptionsByAttraction } from '../services/api'
+import { getAttractionBySlug, getProductOptionsByAttraction, getDisponibilidad, createBooking } from '../services/api'
+import PaymentSimulation from './PaymentSimulation'
 
 function StarRating({ value }) {
   const rounded = Math.round(value)
@@ -31,11 +32,316 @@ function formatDuration(minutes) {
   return `${h}h ${m}min`
 }
 
+// ── Booking flow sub-modal ────────────────────────────────────────────────────
+
+function BookingFlow({ detail, options, onClose, onBooked }) {
+  const [step, setStep] = useState('slot')        // slot | passengers | billing | confirm
+  const [disponibilidad, setDisponibilidad] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(true)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [selectedOption, setSelectedOption] = useState(options[0] ?? null)
+  const [passengers, setPassengers] = useState([])
+  const [billing, setBilling] = useState({ customerName: '', taxId: '', email: '', address: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [bookingError, setBookingError] = useState(null)
+
+  useEffect(() => {
+    if (!detail?.id) return
+    setLoadingSlots(true)
+    getDisponibilidad(detail.id)
+      .then(raw => {
+        const d = raw?.data ?? raw
+        setDisponibilidad(Array.isArray(d) ? d : [])
+      })
+      .catch(() => setDisponibilidad([]))
+      .finally(() => setLoadingSlots(false))
+  }, [detail?.id])
+
+  // Build one passenger entry per priceTier of selected option
+  function initPassengers(opt) {
+    if (!opt?.priceTiers?.length) return [{ priceTierId: '', label: 'Ticket', price: 0, firstName: '', lastName: '', documentType: 'CI', documentNumber: '' }]
+    return opt.priceTiers.map(t => ({
+      priceTierId: t.id,
+      label: t.categoryName,
+      price: t.price,
+      currencyCode: t.currencyCode,
+      firstName: '', lastName: '', documentType: 'CI', documentNumber: '',
+    }))
+  }
+
+  function handleSelectOption(opt) {
+    setSelectedOption(opt)
+    setPassengers(initPassengers(opt))
+  }
+
+  function handleSelectSlot(day, slot) {
+    setSelectedDay(day)
+    setSelectedSlot(slot)
+    if (!passengers.length && selectedOption) setPassengers(initPassengers(selectedOption))
+  }
+
+  function updatePassenger(idx, field, value) {
+    setPassengers(ps => ps.map((p, i) => i === idx ? { ...p, [field]: value } : p))
+  }
+
+  const total = passengers.reduce((s, p) => s + (Number(p.price) || 0), 0)
+
+  async function handleSubmit() {
+    setBookingError(null)
+    setSubmitting(true)
+    try {
+      const body = {
+        slotId:          selectedSlot.slotId,
+        attractionId:    detail.id,
+        productOptionId: selectedOption?.id ?? '',
+        contactName:     billing.customerName || passengers[0]?.firstName || 'Invitado',
+        contactEmail:    billing.email,
+        tickets: passengers.map(p => ({
+          priceTierId:    p.priceTierId || undefined,
+          firstName:      p.firstName,
+          lastName:       p.lastName,
+          documentType:   p.documentType,
+          documentNumber: p.documentNumber,
+        })),
+        billing: {
+          customerName: billing.customerName,
+          taxId:        billing.taxId,
+          email:        billing.email,
+          address:      billing.address,
+        },
+      }
+      const raw = await createBooking(body)
+      const d   = raw?.data ?? raw
+      onBooked({
+        bookingId:     d?.bookingId,
+        pnrCode:       d?.pnrCode,
+        totalAmount:   d?.totalAmount ?? total,
+        currency:      d?.currency ?? 'USD',
+        attractionName: detail.name,
+        activityDate:  d?.activityDate,
+      })
+    } catch (err) {
+      setBookingError(err.message || 'Error al crear la reserva')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[210] overflow-y-auto flex items-start justify-center p-4 py-10">
+      <div className="fixed inset-0 bg-cominca-charcoal/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-cominca-cream w-full max-w-2xl shadow-2xl animate-fadeSlideUp overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-7 py-5 border-b border-cominca-border">
+          <div>
+            <p className="label-elegant mb-0.5">Reservar experiencia</p>
+            <h3 className="font-serif text-xl font-light text-cominca-charcoal">{detail.name}</h3>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center border border-cominca-border hover:bg-cominca-light transition-colors">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Step tabs */}
+        <div className="flex border-b border-cominca-border">
+          {[['slot','1. Fecha y hora'],['passengers','2. Pasajeros'],['billing','3. Facturación']].map(([s, label]) => (
+            <div key={s} className={`flex-1 py-3 text-center text-xs font-sans tracking-wide transition-colors
+              ${step === s ? 'border-b-2 border-cominca-charcoal text-cominca-charcoal font-medium' : 'text-cominca-sand'}`}>
+              {label}
+            </div>
+          ))}
+        </div>
+
+        <div className="p-7">
+
+          {/* ── STEP 1: Slot selection ── */}
+          {step === 'slot' && (
+            <div className="space-y-5">
+              {options.length > 1 && (
+                <div>
+                  <p className="label-elegant mb-3">Modalidad</p>
+                  <div className="space-y-2">
+                    {options.map(opt => (
+                      <label key={opt.id} className={`flex items-center gap-3 p-3 border cursor-pointer transition-colors
+                        ${selectedOption?.id === opt.id ? 'border-cominca-charcoal bg-cominca-light' : 'border-cominca-border hover:bg-cominca-light/50'}`}>
+                        <input type="radio" name="option" checked={selectedOption?.id === opt.id} onChange={() => handleSelectOption(opt)} className="accent-cominca-forest" />
+                        <div className="flex-1">
+                          <p className="font-sans text-sm font-medium text-cominca-charcoal">{opt.title}</p>
+                          {opt.priceTiers?.[0] && (
+                            <p className="text-xs text-cominca-sand">Desde ${opt.priceTiers[0].price} {opt.priceTiers[0].currencyCode}</p>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="label-elegant mb-3">Disponibilidad</p>
+                {loadingSlots ? (
+                  <div className="h-32 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-cominca-forest border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : disponibilidad.length === 0 ? (
+                  <p className="font-sans text-cominca-sand text-sm py-6 text-center">No hay cupos disponibles en los próximos 30 días.</p>
+                ) : (
+                  <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                    {disponibilidad.map(day => (
+                      <div key={day.fecha} className="border border-cominca-border">
+                        <div className="px-4 py-2 bg-cominca-light flex items-center justify-between">
+                          <span className="font-sans text-sm font-medium text-cominca-charcoal">{day.fecha}</span>
+                          <span className="text-xs text-cominca-sand">{day.cuposDisponibles} cupos</span>
+                        </div>
+                        <div className="p-3 space-y-2">
+                          {day.horarios?.map(h => (
+                            <label key={h.slotId} className={`flex items-center gap-3 px-3 py-2 cursor-pointer border transition-colors
+                              ${selectedSlot?.slotId === h.slotId ? 'border-cominca-charcoal bg-cominca-light' : 'border-cominca-border hover:bg-cominca-light/30'}`}>
+                              <input type="radio" name="slot" checked={selectedSlot?.slotId === h.slotId}
+                                onChange={() => handleSelectSlot(day.fecha, h)} className="accent-cominca-forest" />
+                              <span className="font-sans text-sm text-cominca-charcoal">{h.horaInicio}{h.horaFin ? ` – ${h.horaFin}` : ''}</span>
+                              <span className="ml-auto text-xs text-cominca-sand">{h.cuposDisponibles}/{h.cuposTotales} disp.</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => { if (!passengers.length && selectedOption) setPassengers(initPassengers(selectedOption)); setStep('passengers') }}
+                  disabled={!selectedSlot}
+                  className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Continuar →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 2: Passengers ── */}
+          {step === 'passengers' && (
+            <div className="space-y-5">
+              <div className="text-xs font-sans text-cominca-sand bg-cominca-light px-4 py-2 border border-cominca-border">
+                Slot seleccionado: <strong>{selectedDay}</strong> · {selectedSlot?.horaInicio}{selectedSlot?.horaFin ? ` – ${selectedSlot.horaFin}` : ''}
+              </div>
+
+              {passengers.map((p, i) => (
+                <div key={i} className="border border-cominca-border p-4 space-y-4">
+                  <p className="label-elegant">{p.label} {passengers.length > 1 ? `#${i+1}` : ''} — ${p.price} {p.currencyCode}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-elegant block mb-1">Nombre</label>
+                      <input className="input-elegant w-full" value={p.firstName} onChange={e => updatePassenger(i, 'firstName', e.target.value)} placeholder="María" required />
+                    </div>
+                    <div>
+                      <label className="label-elegant block mb-1">Apellido</label>
+                      <input className="input-elegant w-full" value={p.lastName} onChange={e => updatePassenger(i, 'lastName', e.target.value)} placeholder="García" required />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-elegant block mb-1">Tipo doc.</label>
+                      <select className="input-elegant w-full" value={p.documentType} onChange={e => updatePassenger(i, 'documentType', e.target.value)}>
+                        <option value="CI">Cédula</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label-elegant block mb-1">Nº Documento</label>
+                      <input className="input-elegant w-full" value={p.documentNumber} onChange={e => updatePassenger(i, 'documentNumber', e.target.value)} placeholder="0000000000" required />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between pt-2">
+                <button onClick={() => setStep('slot')} className="btn-ghost text-xs px-4 py-2">← Atrás</button>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-sans text-cominca-charcoal font-medium">Total: ${total.toFixed(2)}</span>
+                  <button
+                    onClick={() => setStep('billing')}
+                    disabled={passengers.some(p => !p.firstName || !p.lastName || !p.documentNumber)}
+                    className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Continuar →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 3: Billing + confirm ── */}
+          {step === 'billing' && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="label-elegant block mb-1">Nombre / Razón Social</label>
+                  <input className="input-elegant w-full" value={billing.customerName} onChange={e => setBilling(b => ({ ...b, customerName: e.target.value }))} placeholder="María García" />
+                </div>
+                <div>
+                  <label className="label-elegant block mb-1">RUC / Cédula</label>
+                  <input className="input-elegant w-full" value={billing.taxId} onChange={e => setBilling(b => ({ ...b, taxId: e.target.value }))} placeholder="0912345678" />
+                </div>
+                <div>
+                  <label className="label-elegant block mb-1">Correo electrónico</label>
+                  <input type="email" className="input-elegant w-full" value={billing.email} onChange={e => setBilling(b => ({ ...b, email: e.target.value }))} placeholder="maria@email.com" />
+                </div>
+                <div className="col-span-2">
+                  <label className="label-elegant block mb-1">Dirección</label>
+                  <input className="input-elegant w-full" value={billing.address} onChange={e => setBilling(b => ({ ...b, address: e.target.value }))} placeholder="Av. Principal 123, Guayaquil" />
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="border border-cominca-border p-4 bg-cominca-light space-y-1.5">
+                <p className="label-elegant mb-2">Resumen</p>
+                {passengers.map((p, i) => (
+                  <div key={i} className="flex justify-between text-sm font-sans">
+                    <span className="text-cominca-sand">{p.label} {passengers.length > 1 ? `#${i+1}` : ''} ({p.firstName})</span>
+                    <span className="text-cominca-charcoal">${Number(p.price).toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm font-sans font-semibold border-t border-cominca-border pt-1.5 mt-1">
+                  <span className="text-cominca-charcoal">Total</span>
+                  <span className="text-cominca-charcoal">${total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {bookingError && (
+                <p className="text-red-600 text-sm font-sans bg-red-50 border border-red-200 px-4 py-2">{bookingError}</p>
+              )}
+
+              <div className="flex items-center justify-between pt-2">
+                <button onClick={() => setStep('passengers')} className="btn-ghost text-xs px-4 py-2">← Atrás</button>
+                <button onClick={handleSubmit} disabled={submitting} className="btn-primary disabled:opacity-40">
+                  {submitting ? 'Procesando…' : 'Confirmar y pagar →'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function AttractionDetail({ slug, onClose }) {
   const [detail, setDetail]   = useState(null)
   const [options, setOptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
+  const [showBooking, setShowBooking] = useState(false)
+  const [pendingPayment, setPendingPayment] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -127,7 +433,7 @@ export default function AttractionDetail({ slug, onClose }) {
               {/* Body */}
               <div className="p-8 space-y-7">
 
-                {/* Rating + meta chips */}
+                {/* Rating + meta chips + CTA */}
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <StarRating value={detail.ratingAverage ?? 0} />
                   <div className="flex items-center gap-2 flex-wrap">
@@ -146,6 +452,12 @@ export default function AttractionDetail({ slug, onClose }) {
                         Grupo máx: {detail.maxGroupSize}
                       </span>
                     )}
+                    <button
+                      onClick={() => setShowBooking(true)}
+                      className="btn-primary text-sm px-5 py-2"
+                    >
+                      Reservar ahora
+                    </button>
                   </div>
                 </div>
 
@@ -243,6 +555,28 @@ export default function AttractionDetail({ slug, onClose }) {
           ) : null}
         </div>
       </div>
+
+      {/* Booking sub-modal */}
+      {showBooking && detail && (
+        <BookingFlow
+          detail={detail}
+          options={options}
+          onClose={() => setShowBooking(false)}
+          onBooked={(bookingData) => {
+            setShowBooking(false)
+            setPendingPayment(bookingData)
+          }}
+        />
+      )}
+
+      {/* Payment simulation */}
+      {pendingPayment && (
+        <PaymentSimulation
+          booking={pendingPayment}
+          onClose={() => { setPendingPayment(null); onClose() }}
+          onSuccess={() => {}}
+        />
+      )}
     </div>
   )
 }

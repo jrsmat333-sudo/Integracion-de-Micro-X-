@@ -61,4 +61,26 @@ public class InventoryDataService : IInventoryDataService
 
         return await _unitOfWork.CompleteAsync() > 0;
     }
+
+    public async Task<Guid> CreateSlotAsync(Guid productOptionId, DateOnly slotDate, TimeOnly startTime, TimeOnly? endTime, short capacityTotal, string? notes)
+    {
+        var slot = new DataAccess.Entities.AvailabilitySlot
+        {
+            Id = Guid.NewGuid(),
+            ProductId = productOptionId,
+            SlotDate = slotDate,
+            StartTime = startTime,
+            EndTime = endTime,
+            CapacityTotal = capacityTotal,
+            CapacityAvailable = capacityTotal,
+            IsActive = true,
+            Notes = notes,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+
+        await _unitOfWork.AvailabilitySlots.AddAsync(slot);
+        await _unitOfWork.CompleteAsync();
+        return slot.Id;
+    }
 }

@@ -228,3 +228,68 @@ export const updateTicketCategory = (id, data) =>
 
 export const deleteTicketCategory = (id) =>
   request('DELETE', `/api/v1/ticketcategory/${id}`)
+
+// ── Booking (público)  →  /api/v1/booking ───────────────────────────────────
+
+export const getDisponibilidad = (attractionId, fecha = null) => {
+  const qs = new URLSearchParams({ attractionId, ...(fecha ? { fecha } : {}) }).toString()
+  return request('GET', `/api/v1/booking/disponibilidad?${qs}`)
+}
+
+export const createBooking = (data) =>
+  request('POST', '/api/v1/booking', data)
+
+export const cancelBooking = (id) =>
+  request('POST', `/api/v1/booking/${id}/cancel`)
+
+export const getMisReservas = () =>
+  request('GET', '/api/v1/booking/mis-reservas')
+
+// ── Booking (Admin)  →  /api/v1/admin-booking ───────────────────────────────
+
+export const getAdminBookings = (params = {}) => {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
+  ).toString()
+  return request('GET', `/api/v1/admin-booking/management${qs ? `?${qs}` : ''}`)
+}
+
+export const getBookingByPnr = (pnr) =>
+  request('GET', `/api/v1/admin-booking/${pnr}`)
+
+export const getBookingDetail = (id) =>
+  request('GET', `/api/v1/admin-booking/detail/${id}`)
+
+export const cancelAdminBooking = (data) =>
+  request('POST', '/api/v1/admin-booking/cancel', data)
+
+// ── Payment  →  /api/v1/payment ─────────────────────────────────────────────
+
+export const createPayment = (data) =>
+  request('POST', '/api/v1/payment', data)
+
+export const updatePaymentStatus = (id, data) =>
+  request('PUT', `/api/v1/payment/${id}/status`, data)
+
+// ── Billing  →  /api/v1/billing ─────────────────────────────────────────────
+
+export const getMyInvoices = () =>
+  request('GET', '/api/v1/billing/my-invoices')
+
+export const getAdminInvoices = (params = {}) => {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
+  ).toString()
+  return request('GET', `/api/v1/billing/management${qs ? `?${qs}` : ''}`)
+}
+
+export const getInvoiceDetail = (id) =>
+  request('GET', `/api/v1/billing/management/${id}`)
+
+export const voidInvoice = (id) =>
+  request('POST', `/api/v1/billing/management/${id}/void`)
+
+// ── Inventory (Admin)  →  /api/v1/inventory ─────────────────────────────────
+
+export const createInventorySlot = (data) =>
+  request('POST', '/api/v1/inventory/slot', data)

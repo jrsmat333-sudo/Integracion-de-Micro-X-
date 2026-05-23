@@ -47,7 +47,6 @@ export default function Navbar({ user, onOpenAuth, onLogout, onOpenProfile }) {
   const [dropOpen, setDropOpen] = useState(false)
   const dropRef = useRef(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClick(e) {
       if (dropRef.current && !dropRef.current.contains(e.target)) {
@@ -59,18 +58,18 @@ export default function Navbar({ user, onOpenAuth, onLogout, onOpenProfile }) {
   }, [])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-cominca-cream/80 border-b border-cominca-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
 
         {/* Logo */}
         <a href="/" className="flex items-center gap-3 group">
           <img
             src={logo}
-            alt="Keo Arc"
+            alt="Ady Cats"
             className="h-9 w-9 object-contain rounded-sm opacity-90 group-hover:opacity-100 transition-opacity duration-200"
           />
-          <span className="font-serif text-xl font-medium tracking-wide text-cominca-charcoal hidden sm:block">
-            Keo Arc
+          <span className="font-serif text-xl font-medium tracking-wide text-white hidden sm:block drop-shadow">
+            Ady Cats
           </span>
         </a>
 
@@ -78,7 +77,7 @@ export default function Navbar({ user, onOpenAuth, onLogout, onOpenProfile }) {
         <div className="flex items-center gap-5">
 
           {/* Cart icon */}
-          <button className="text-cominca-sand hover:text-cominca-charcoal transition-colors duration-200">
+          <button className="text-white/80 hover:text-white transition-colors duration-200 drop-shadow">
             <IconCart />
           </button>
 
@@ -86,9 +85,9 @@ export default function Navbar({ user, onOpenAuth, onLogout, onOpenProfile }) {
           <div className="relative" ref={dropRef}>
             <button
               onClick={() => setDropOpen((v) => !v)}
-              className="flex items-center gap-1.5 text-cominca-charcoal hover:text-cominca-forest transition-colors duration-200"
+              className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors duration-200"
             >
-              <div className="w-8 h-8 rounded-full border border-cominca-border bg-cominca-light flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full border border-white/40 bg-white/20 flex items-center justify-center backdrop-blur-sm">
                 <IconUser />
               </div>
               <IconChevron open={dropOpen} />
@@ -100,7 +99,6 @@ export default function Navbar({ user, onOpenAuth, onLogout, onOpenProfile }) {
 
                 {user ? (
                   <>
-                    {/* User info */}
                     <div className="px-4 py-3 border-b border-cominca-border">
                       <p className="text-xs font-sans text-cominca-sand tracking-widest uppercase mb-0.5">
                         Cuenta
