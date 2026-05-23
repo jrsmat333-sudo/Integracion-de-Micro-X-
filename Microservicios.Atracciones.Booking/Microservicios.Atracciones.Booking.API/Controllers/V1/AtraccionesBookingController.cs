@@ -48,7 +48,9 @@ public class AtraccionesBookingController : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> CancelarReserva(Guid id)
     {
         var userId = GetUserId();
-        var result = await _bookingService.CancelarReservaAsync(id, userId);
+        if (userId == null) return Unauthorized();
+
+        var result = await _bookingService.CancelarReservaAsync(id, userId.Value);
 
         if (!result.Success)
             return BadRequest(result);
@@ -76,7 +78,9 @@ public class AtraccionesBookingController : ControllerBase
     public async Task<ActionResult<ApiResponse<List<AtraccionBookingResponseDto>>>> ListarMisReservas()
     {
         var userId = GetUserId();
-        var result = await _bookingService.ListarMisReservasAsync(userId);
+        if (userId == null) return Unauthorized();
+
+        var result = await _bookingService.ListarMisReservasAsync(userId.Value);
         return Ok(result);
     }
 
