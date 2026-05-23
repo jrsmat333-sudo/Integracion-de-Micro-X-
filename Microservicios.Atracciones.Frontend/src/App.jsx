@@ -109,7 +109,7 @@ export default function App() {
     setShowProfile(false)
   }
 
-  const isAdmin = user?.role === 'Admin'
+  const isAdmin = user?.role === 'Admin' || user?.role === 'Partner'
 
   // ── Admin view ──────────────────────────────────────────────────────────────
   if (isAdmin) {

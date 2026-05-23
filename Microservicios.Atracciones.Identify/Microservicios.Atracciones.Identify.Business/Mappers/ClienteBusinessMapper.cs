@@ -20,21 +20,28 @@ public static class ClienteBusinessMapper
     {
         return new ClienteResponse
         {
-            Id = dataModel.Id,
-            Identification = dataModel.DocumentNumber ?? string.Empty,
-            FullName = $"{dataModel.FirstName} {dataModel.LastName}",
-            Email = dataModel.UserEmail,
-            Phone = dataModel.Phone
+            Id             = dataModel.Id,
+            FirstName      = dataModel.FirstName,
+            LastName       = dataModel.LastName,
+            FullName       = $"{dataModel.FirstName} {dataModel.LastName}",
+            Email          = dataModel.UserEmail,
+            Phone          = dataModel.Phone,
+            BirthDate      = dataModel.BirthDate,
+            LocationId     = dataModel.LocationId,
+            DocumentType   = dataModel.DocumentType,
+            DocumentNumber = dataModel.DocumentNumber,
         };
     }
 
     public static void ApplyToModel(this ActualizarClienteRequest request, ClientNode model)
     {
-        model.FirstName = request.FirstName;
-        model.LastName = request.LastName;
-        model.Phone = request.Phone;
-        model.BirthDate = request.BirthDate;
-        model.Nationality = request.Nationality;
-        model.LocationId = request.LocationId;
+        model.FirstName      = request.FirstName;
+        model.LastName       = request.LastName;
+        model.Phone          = request.Phone;
+        model.BirthDate      = request.BirthDate;
+        model.Nationality    = request.Nationality;
+        model.LocationId     = request.LocationId;
+        if (request.DocumentType   != null) model.DocumentType   = request.DocumentType;
+        if (request.DocumentNumber != null) model.DocumentNumber = request.DocumentNumber;
     }
 }

@@ -40,10 +40,12 @@ function extractAndStoreAuth(raw) {
   const u = payload?.user ?? {}
   const roles = Array.isArray(u.roles) ? u.roles : (u.role ? [u.role] : [])
   const user = {
-    id:    u.userId?.toString() || '',
-    email: u.email  || '',
-    name:  [u.firstName, u.lastName].filter(Boolean).join(' '),
-    role:  roles[0] || '',   // primer rol como string, para el check de Admin
+    id:        u.userId?.toString() || '',
+    email:     u.email     || '',
+    firstName: u.firstName || '',
+    lastName:  u.lastName  || '',
+    name:      [u.firstName, u.lastName].filter(Boolean).join(' '),
+    role:      roles[0] || '',
     roles,
   }
 
@@ -88,6 +90,14 @@ export const loginCliente = async (email, password) =>
 export const loginAdmin = async (email, password) =>
   extractAndStoreAuth(await request('POST', '/api/v1/auth/login-admin', { email, password }))
 
+export async function smartLogin(email, password) {
+  try {
+    return await loginAdmin(email, password)
+  } catch {
+    return await loginCliente(email, password)
+  }
+}
+
 export const registerCliente = async (data) =>
   extractAndStoreAuth(await request('POST', '/api/v1/auth/register', data))
 
@@ -127,3 +137,8 @@ export const deleteClient = (id) =>
 
 export const validateClient = (docNumber) =>
   request('GET', `/api/v1/client/validate/${docNumber}`)
+
+// ── Locations (Catalog)  →  /api/v1/location ────────────────────────────────
+
+export const getLocations = () =>
+  request('GET', '/api/v1/location')

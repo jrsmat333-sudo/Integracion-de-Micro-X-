@@ -77,7 +77,7 @@ public class ClienteService : IClienteService
 
     public async Task<ClienteResponse> ObtenerPorIdAsync(Guid id)
     {
-        var dataModel = await _clientDataService.GetByIdAsync(id);
+        var dataModel = await _clientDataService.GetByUserIdAsync(id);
 
         if (dataModel == null)
             throw new NotFoundException("Cliente", id);
@@ -96,9 +96,9 @@ public class ClienteService : IClienteService
         if (userId != request.Id)
             throw new UnauthorizedBusinessException("No tienes permiso para actualizar este perfil de cliente.");
 
-        var dataModel = await _clientDataService.GetByIdAsync(request.Id);
+        var dataModel = await _clientDataService.GetByUserIdAsync(userId);
         if (dataModel == null)
-            throw new NotFoundException("Cliente", request.Id);
+            throw new NotFoundException("Cliente", userId);
 
         request.ApplyToModel(dataModel);
 
@@ -106,7 +106,7 @@ public class ClienteService : IClienteService
         if (!success)
             throw new BusinessException("No se pudo actualizar el perfil del cliente.");
 
-        var updatedModel = await _clientDataService.GetByIdAsync(request.Id);
+        var updatedModel = await _clientDataService.GetByUserIdAsync(userId);
         return updatedModel!.ToResponse();
     }
 

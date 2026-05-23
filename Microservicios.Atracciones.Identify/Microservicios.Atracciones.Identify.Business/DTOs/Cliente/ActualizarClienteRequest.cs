@@ -18,4 +18,6 @@ public class ActualizarClienteRequest
     public DateTime? BirthDate { get; set; }
     public string? Nationality { get; set; }
     public Guid? LocationId { get; set; }
+    public string? DocumentType { get; set; }
+    public string? DocumentNumber { get; set; }
 }

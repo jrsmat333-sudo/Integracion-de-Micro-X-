@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { loginCliente, loginAdmin, registerCliente } from '../services/api'
+import { smartLogin, registerCliente } from '../services/api'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ function LoginForm({ onSuccess, onError, loading, setLoading }) {
     e.preventDefault()
     setLoading(true)
     try {
-      const user = await loginCliente(email, password)
+      const user = await smartLogin(email, password)
       onSuccess(user)
     } catch (err) {
       onError(err.message)
@@ -123,58 +123,11 @@ function RegisterForm({ onSuccess, onError, loading, setLoading }) {
   )
 }
 
-function AdminLoginForm({ onSuccess, onError, loading, setLoading }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPw, setShowPw] = useState(false)
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      const user = await loginAdmin(email, password)
-      onSuccess(user)
-    } catch (err) {
-      onError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-cominca-charcoal/5 border border-cominca-border text-xs font-sans text-cominca-sand">
-        <span className="w-1.5 h-1.5 rounded-full bg-cominca-forest inline-block" />
-        Acceso restringido — solo administradores autorizados
-      </div>
-      <Field label="Correo administrador">
-        <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="admin@keoarc.com" className="input-elegant" />
-      </Field>
-      <Field label="Contraseña">
-        <div className="relative">
-          <input type={showPw ? 'text' : 'password'} required value={password}
-            onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="input-elegant pr-8" />
-          <button type="button" onClick={() => setShowPw(v => !v)}
-            className="absolute right-0 bottom-2 text-cominca-sand hover:text-cominca-charcoal transition-colors">
-            <IconEye show={showPw} />
-          </button>
-        </div>
-      </Field>
-      <button type="submit" disabled={loading}
-        className="w-full py-2.5 text-sm font-sans font-medium tracking-wide bg-cominca-charcoal text-white hover:bg-opacity-90 active:scale-95 transition-all duration-200">
-        {loading ? 'Verificando…' : 'Ingresar al panel'}
-      </button>
-    </form>
-  )
-}
-
 // ── Main Modal ────────────────────────────────────────────────────────────────
 
 const TABS = [
   { id: 'login',    label: 'Iniciar sesión' },
   { id: 'register', label: 'Registrarse' },
-  { id: 'admin',    label: 'Administrador' },
 ]
 
 export default function AuthModal({ initialTab = 'login', onClose, onAuth }) {
@@ -206,9 +159,7 @@ export default function AuthModal({ initialTab = 'login', onClose, onAuth }) {
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-6">
           <h2 className="font-serif text-2xl font-medium text-cominca-charcoal">
-            {tab === 'login'    ? 'Bienvenido de vuelta' :
-             tab === 'register' ? 'Crea tu cuenta' :
-             'Panel de administración'}
+            {tab === 'login' ? 'Bienvenido de vuelta' : 'Crea tu cuenta'}
           </h2>
           <button onClick={onClose}
             className="text-cominca-sand hover:text-cominca-charcoal transition-colors duration-200">
@@ -243,7 +194,6 @@ export default function AuthModal({ initialTab = 'login', onClose, onAuth }) {
 
           {tab === 'login'    && <LoginForm    {...sharedProps} />}
           {tab === 'register' && <RegisterForm {...sharedProps} />}
-          {tab === 'admin'    && <AdminLoginForm {...sharedProps} />}
         </div>
 
         {/* Footer */}

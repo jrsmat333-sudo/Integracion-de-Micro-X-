@@ -253,12 +253,15 @@ function CreateUserModal({ onClose, onCreated }) {
 
 // ── Sections ──────────────────────────────────────────────────────────────────
 
+const ROLE_FILTERS = ['Todos', 'Admin', 'Partner', 'Client']
+
 function UsersSection({ onToast }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState({})
   const [confirm, setConfirm] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [roleFilter, setRoleFilter] = useState('Todos')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -296,10 +299,13 @@ function UsersSection({ onToast }) {
     }
   }
 
+  const roleStr = u => typeof u.role === 'string' ? u.role : (u.role?.name || u.role?.Name || u.roleName || '')
+  const visibleUsers = roleFilter === 'Todos' ? users : users.filter(u => roleStr(u) === roleFilter)
+
   return (
     <>
       {/* Section header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <p className="label-elegant mb-1">Panel de administración</p>
           <h2 className="font-serif text-2xl font-light">Gestión de Usuarios</h2>
@@ -310,15 +316,37 @@ function UsersSection({ onToast }) {
         </button>
       </div>
 
+      {/* Role filter */}
+      <div className="flex items-center gap-2 mb-5">
+        {ROLE_FILTERS.map(f => (
+          <button
+            key={f}
+            onClick={() => setRoleFilter(f)}
+            className={`px-3 py-1.5 text-xs font-sans font-medium transition-colors border
+              ${roleFilter === f
+                ? 'bg-cominca-charcoal text-white border-cominca-charcoal'
+                : 'bg-white text-cominca-sand border-cominca-border hover:text-cominca-charcoal hover:border-cominca-charcoal/40'
+              }`}
+          >
+            {f}
+          </button>
+        ))}
+        {roleFilter !== 'Todos' && (
+          <span className="text-xs font-sans text-cominca-sand ml-1">
+            {visibleUsers.length} resultado{visibleUsers.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
       {/* Table */}
       <div className="card overflow-hidden">
         {loading ? (
           <div className="p-8 space-y-3">
             {[1,2,3,4].map(i => <div key={i} className="h-10 bg-cominca-light animate-pulse" />)}
           </div>
-        ) : users.length === 0 ? (
+        ) : visibleUsers.length === 0 ? (
           <div className="p-12 text-center text-cominca-sand font-sans text-sm">
-            No hay usuarios registrados
+            {users.length === 0 ? 'No hay usuarios registrados' : `No hay usuarios con rol "${roleFilter}"`}
           </div>
         ) : (
           <table className="w-full text-sm font-sans">
@@ -331,7 +359,7 @@ function UsersSection({ onToast }) {
               </tr>
             </thead>
             <tbody>
-              {users.map((u, i) => (
+              {visibleUsers.map((u, i) => (
                 <tr key={u.id} className={`border-b border-cominca-border/50 hover:bg-cominca-cream transition-colors ${i % 2 === 0 ? '' : 'bg-cominca-cream/40'}`}>
                   <td className="px-5 py-3.5 text-cominca-charcoal">{u.email}</td>
                   <td className="px-5 py-3.5">
