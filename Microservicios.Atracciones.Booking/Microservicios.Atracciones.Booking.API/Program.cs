@@ -24,7 +24,9 @@ builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogSer
 
 builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient>(o =>
 {
-    var billingUrl = builder.Configuration["GrpcServices:BillingUrl"] ?? "https://localhost:7052";
+    var billingUrl = builder.Configuration["GrpcServices:BillingAddress"]
+        ?? builder.Configuration["GrpcServices:BillingUrl"]  // legacy key fallback
+        ?? "http://localhost:7052";
     o.Address = new Uri(billingUrl);
 });
 

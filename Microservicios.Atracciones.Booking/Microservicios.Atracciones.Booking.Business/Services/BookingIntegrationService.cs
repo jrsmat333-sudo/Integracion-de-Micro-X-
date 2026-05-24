@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microservicios.Atracciones.Booking.Business.DTOs.Booking;
 using Microservicios.Atracciones.Booking.Business.Interfaces;
 using Microservicios.Atracciones.Booking.DataAccess.Repositories.Interfaces;
@@ -16,6 +17,7 @@ public class BookingIntegrationService : IBookingIntegrationService
     private readonly IInventoryDataService _inventoryData;
     private readonly IUnitOfWork _uow;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<BookingIntegrationService> _logger;
     private readonly Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient _catalogClient;
     private readonly Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient _billingClient;
 
@@ -23,12 +25,14 @@ public class BookingIntegrationService : IBookingIntegrationService
         IInventoryDataService inventoryData,
         IUnitOfWork uow,
         IConfiguration configuration,
+        ILogger<BookingIntegrationService> logger,
         Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient catalogClient,
         Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient billingClient)
     {
         _inventoryData = inventoryData;
         _uow = uow;
         _configuration = configuration;
+        _logger = logger;
         _catalogClient = catalogClient;
         _billingClient = billingClient;
     }
@@ -187,9 +191,20 @@ public class BookingIntegrationService : IBookingIntegrationService
 
             await _uow.CompleteAsync();
 
-            // Llamada gRPC a Billing para crear la factura automáticamente
-            // Si falla, no se revierte la reserva; puede crearse manualmente por admin
-            _ = CrearFacturaAsync(booking, details, request.Billing, resolvedUserId, currency, taxRate);
+            // Llamada gRPC a Billing para crear la factura automáticamente.
+            // Si falla, no se revierte la reserva; puede crearse manualmente por admin.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await CrearFacturaAsync(booking, details, request.Billing, resolvedUserId, currency, taxRate);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "gRPC billing failed for BookingId {BookingId}. BillingUrl={BillingUrl}",
+                        booking.Id, _configuration["GrpcServices:BillingUrl"]);
+                }
+            });
 
             return ApiResponse<AtraccionBookingResponseDto>.Ok(new AtraccionBookingResponseDto
             {
@@ -298,9 +313,9 @@ public class BookingIntegrationService : IBookingIntegrationService
 
             await _billingClient.CreateInvoiceAsync(grpcInvoice);
         }
-        catch
+        catch (Exception ex)
         {
-            // La factura puede crearse manualmente por un admin si falla
+            _logger.LogError(ex, "CrearFacturaAsync inner error for BookingId {BookingId}", booking.Id);
         }
     }
 
