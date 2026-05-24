@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createPayment, updatePaymentStatus } from '../services/api'
+import nekoGif from '../assets/gif-nekoarc.gif'
 
 // ── Card input formatters ─────────────────────────────────────────────────────
 
@@ -239,15 +240,16 @@ export default function PaymentSimulation({ booking, onSuccess, onClose }) {
 
           {/* ── PROCESSING STEP ── */}
           {step === 'processing' && (
-            <div className="px-6 pb-8 flex flex-col items-center gap-5">
-              <div className="relative w-16 h-16">
-                <div className="absolute inset-0 rounded-full border-2 border-white/10" />
-                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cominca-forest animate-spin" />
-                <div className="absolute inset-2 rounded-full border border-white/5 border-t-emerald-400 animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
-              </div>
-              <div className="text-center">
-                <p className="text-white font-sans font-medium">Verificando con el banco…</p>
-                <p className="text-white/40 text-xs font-sans mt-1">Por favor espera, no cierres esta ventana</p>
+            <div className="px-6 pb-8 flex flex-col items-center gap-4">
+              <img src={nekoGif} alt="Procesando…" className="w-28 h-28 object-contain" />
+              <div className="flex items-center gap-3">
+                <div className="relative w-5 h-5 flex-shrink-0">
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cominca-forest animate-spin" />
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-sans font-medium">Verificando con el banco…</p>
+                  <p className="text-white/40 text-xs font-sans mt-0.5">Por favor espera, no cierres esta ventana</p>
+                </div>
               </div>
             </div>
           )}

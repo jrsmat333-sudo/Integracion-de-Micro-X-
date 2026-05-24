@@ -18,6 +18,8 @@ import carouselLogo from './assets/Carrusel/logo.png'
 // Section assets
 import imgSeccion3 from './assets/IMGSECCION3.jpeg'
 import mapaEc from './assets/mapaec.png'
+import neko9 from './assets/neko9.jpg'
+import neko6 from './assets/neko6.jpg'
 
 const CAROUSEL_IMAGES = [img1, img4, img5, imagen6, img7, img9]
 const CAROUSEL_INTERVAL = 6000
@@ -161,23 +163,50 @@ function HeroCarousel() {
 
 // ── Section 2: General Info ───────────────────────────────────────────────────
 
+const nekoHoverStyle = `
+  .neko9-img {
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), box-shadow 0.4s ease, filter 0.4s ease;
+    border-radius: 2px;
+  }
+  .neko9-img:hover {
+    transform: scale(1.07) rotate(-2deg);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+    filter: brightness(1.06) saturate(1.1);
+  }
+`
+
 function InfoSection() {
   return (
-    <section className="bg-[#faf9f6] py-24 px-6 flex flex-col items-center justify-center min-h-[50vh] text-center">
-      <h2 className="font-serif text-4xl sm:text-5xl font-light text-cominca-charcoal mb-10 max-w-3xl leading-tight">
-        Discover the essence of Ecuador
-      </h2>
-      <div className="max-w-2xl space-y-6 font-sans text-cominca-sand text-base leading-relaxed">
-        <p>
-          Nestled between the Andes, the Amazon, the Pacific Coast, and the Galápagos Islands,
-          Ecuador offers an unforgettable journey filled with culture, history, and breathtaking
-          natural beauty.
-        </p>
-        <p>
-          We create authentic experiences that connect travelers with Ecuador&apos;s rich traditions,
-          vibrant communities, and extraordinary landscapes, while blending comfort and modern
-          hospitality with the country&apos;s timeless charm.
-        </p>
+    <section className="bg-[#faf9f6] py-24 px-6 min-h-[50vh]">
+      <style>{nekoHoverStyle}</style>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        {/* Left: image with hover animation */}
+        <div className="flex items-center justify-center">
+          <img
+            src={neko9}
+            alt="Discover Ecuador"
+            className="neko9-img max-w-xs w-full object-cover shadow-lg"
+          />
+        </div>
+
+        {/* Right: text */}
+        <div>
+          <h2 className="font-serif text-4xl sm:text-5xl font-light text-cominca-charcoal mb-10 leading-tight">
+            Discover the essence of Ecuador
+          </h2>
+          <div className="space-y-6 font-sans text-cominca-sand text-base leading-relaxed">
+            <p>
+              Nestled between the Andes, the Amazon, the Pacific Coast, and the Galápagos Islands,
+              Ecuador offers an unforgettable journey filled with culture, history, and breathtaking
+              natural beauty.
+            </p>
+            <p>
+              We create authentic experiences that connect travelers with Ecuador&apos;s rich traditions,
+              vibrant communities, and extraordinary landscapes, while blending comfort and modern
+              hospitality with the country&apos;s timeless charm.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -302,11 +331,18 @@ function LandingPage({ onOpenAuth, onAttractionSelect }) {
       {/* Catálogo completo */}
       <section className="px-6 py-14 max-w-7xl mx-auto w-full">
         <div className="flex items-end justify-between mb-7 flex-wrap gap-4">
-          <div>
-            <p className="label-elegant mb-2">Catálogo</p>
-            <h2 className="font-serif text-3xl font-light text-cominca-charcoal">
-              Descubre todas las experiencias
-            </h2>
+          <div className="flex items-center gap-4">
+            <img
+              src={neko6}
+              alt=""
+              className="w-14 h-14 object-cover rounded-full shadow-md flex-shrink-0 opacity-90"
+            />
+            <div>
+              <p className="label-elegant mb-2">Catálogo</p>
+              <h2 className="font-serif text-3xl font-light text-cominca-charcoal">
+                Descubre todas las experiencias
+              </h2>
+            </div>
           </div>
           <input
             type="text"

@@ -35,19 +35,18 @@ function formatDuration(minutes) {
 // ── Booking flow sub-modal ────────────────────────────────────────────────────
 
 function BookingFlow({ detail, options, onClose, onBooked }) {
-  const [step, setStep] = useState('slot')        // slot | passengers | billing | confirm
+  const [step, setStep] = useState('slot')
   const [disponibilidad, setDisponibilidad] = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [selectedDay, setSelectedDay] = useState(null)
   const [selectedSlot, setSelectedSlot] = useState(null)
-  // Auto-select when there's only one option; otherwise require explicit selection
   const [selectedOption, setSelectedOption] = useState(options.length === 1 ? options[0] : null)
   const [passengers, setPassengers] = useState([])
+  const [showAddPicker, setShowAddPicker] = useState(false)
   const [billing, setBilling] = useState({ customerName: '', taxId: '', email: '', address: '' })
   const [submitting, setSubmitting] = useState(false)
   const [bookingError, setBookingError] = useState(null)
 
-  // Load availability only after an option is chosen, filtered by its productOptionId
   useEffect(() => {
     if (!detail?.id || !selectedOption?.id) {
       setDisponibilidad([])
@@ -65,31 +64,45 @@ function BookingFlow({ detail, options, onClose, onBooked }) {
       .finally(() => setLoadingSlots(false))
   }, [detail?.id, selectedOption?.id])
 
-  // Build one passenger entry per priceTier of selected option
-  function initPassengers(opt) {
-    if (!opt?.priceTiers?.length) return [{ priceTierId: '', label: 'Ticket', price: 0, firstName: '', lastName: '', documentType: 'CI', documentNumber: '' }]
-    return opt.priceTiers.map(t => ({
-      priceTierId: t.id,
-      label: t.categoryName,
-      price: t.price,
-      currencyCode: t.currencyCode,
-      firstName: '', lastName: '', documentType: 'CI', documentNumber: '',
-    }))
-  }
-
   function handleSelectOption(opt) {
     setSelectedOption(opt)
-    setPassengers(initPassengers(opt))
+    setPassengers([])
+    setShowAddPicker(false)
   }
 
   function handleSelectSlot(day, slot) {
     setSelectedDay(day)
     setSelectedSlot(slot)
-    if (!passengers.length && selectedOption) setPassengers(initPassengers(selectedOption))
+  }
+
+  function addPassenger(tier) {
+    setPassengers(ps => [...ps, {
+      priceTierId:    tier.id,
+      label:          tier.categoryName,
+      price:          tier.price,
+      currencyCode:   tier.currencyCode,
+      firstName: '', lastName: '', documentType: 'CI', documentNumber: '',
+    }])
+    setShowAddPicker(false)
+  }
+
+  function removePassenger(idx) {
+    setPassengers(ps => ps.filter((_, i) => i !== idx))
   }
 
   function updatePassenger(idx, field, value) {
     setPassengers(ps => ps.map((p, i) => i === idx ? { ...p, [field]: value } : p))
+  }
+
+  function onDocNumberChange(idx, raw, docType) {
+    const digits = raw.replace(/\D/g, '').slice(0, docType === 'CI' ? 10 : 20)
+    updatePassenger(idx, 'documentNumber', digits)
+  }
+
+  function isDocValid(p) {
+    if (!p.documentNumber) return false
+    if (p.documentType === 'CI') return p.documentNumber.length === 10
+    return p.documentNumber.length >= 6
   }
 
   const total = passengers.reduce((s, p) => s + (Number(p.price) || 0), 0)
@@ -227,7 +240,7 @@ function BookingFlow({ detail, options, onClose, onBooked }) {
 
               <div className="flex justify-end pt-2">
                 <button
-                  onClick={() => { if (!passengers.length && selectedOption) setPassengers(initPassengers(selectedOption)); setStep('passengers') }}
+                  onClick={() => setStep('passengers')}
                   disabled={!selectedSlot}
                   className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -239,47 +252,112 @@ function BookingFlow({ detail, options, onClose, onBooked }) {
 
           {/* ── STEP 2: Passengers ── */}
           {step === 'passengers' && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div className="text-xs font-sans text-cominca-sand bg-cominca-light px-4 py-2 border border-cominca-border">
-                Slot seleccionado: <strong>{selectedDay}</strong> · {selectedSlot?.horaInicio}{selectedSlot?.horaFin ? ` – ${selectedSlot.horaFin}` : ''}
+                Fecha: <strong>{selectedDay}</strong> · {selectedSlot?.horaInicio}{selectedSlot?.horaFin ? ` – ${selectedSlot.horaFin}` : ''} · <strong>{selectedOption?.title}</strong>
               </div>
 
+              {passengers.length === 0 && !showAddPicker && (
+                <p className="text-center text-cominca-sand font-sans text-sm py-6 border border-dashed border-cominca-border">
+                  Aún no has agregado pasajeros.
+                </p>
+              )}
+
               {passengers.map((p, i) => (
-                <div key={i} className="border border-cominca-border p-4 space-y-4">
-                  <p className="label-elegant">{p.label} {passengers.length > 1 ? `#${i+1}` : ''} — ${p.price} {p.currencyCode}</p>
-                  <div className="grid grid-cols-2 gap-4">
+                <div key={i} className="border border-cominca-border p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="label-elegant">{p.label} — ${Number(p.price).toFixed(2)} {p.currencyCode}</p>
+                    <button type="button" onClick={() => removePassenger(i)}
+                      className="text-red-400 hover:text-red-600 text-xs font-sans transition-colors px-2 py-0.5 border border-red-200 hover:border-red-400">
+                      Quitar
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="label-elegant block mb-1">Nombre</label>
-                      <input className="input-elegant w-full" value={p.firstName} onChange={e => updatePassenger(i, 'firstName', e.target.value)} placeholder="María" required />
+                      <input className="input-elegant w-full" value={p.firstName}
+                        onChange={e => updatePassenger(i, 'firstName', e.target.value)} placeholder="María" />
                     </div>
                     <div>
                       <label className="label-elegant block mb-1">Apellido</label>
-                      <input className="input-elegant w-full" value={p.lastName} onChange={e => updatePassenger(i, 'lastName', e.target.value)} placeholder="García" required />
+                      <input className="input-elegant w-full" value={p.lastName}
+                        onChange={e => updatePassenger(i, 'lastName', e.target.value)} placeholder="García" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="label-elegant block mb-1">Tipo doc.</label>
-                      <select className="input-elegant w-full" value={p.documentType} onChange={e => updatePassenger(i, 'documentType', e.target.value)}>
+                      <select className="input-elegant w-full" value={p.documentType}
+                        onChange={e => { updatePassenger(i, 'documentType', e.target.value); updatePassenger(i, 'documentNumber', '') }}>
                         <option value="CI">Cédula</option>
                         <option value="Pasaporte">Pasaporte</option>
                       </select>
                     </div>
                     <div>
-                      <label className="label-elegant block mb-1">Nº Documento</label>
-                      <input className="input-elegant w-full" value={p.documentNumber} onChange={e => updatePassenger(i, 'documentNumber', e.target.value)} placeholder="0000000000" required />
+                      <label className="label-elegant block mb-1">
+                        Nº Documento
+                        <span className="ml-1 font-normal text-cominca-border normal-case">
+                          {p.documentType === 'CI' ? '(10 dígitos)' : '(solo números)'}
+                        </span>
+                      </label>
+                      <input
+                        className={`input-elegant w-full ${p.documentNumber && !isDocValid(p) ? 'border-red-400 focus:border-red-400' : ''}`}
+                        inputMode="numeric"
+                        value={p.documentNumber}
+                        onChange={e => onDocNumberChange(i, e.target.value, p.documentType)}
+                        placeholder={p.documentType === 'CI' ? '0000000000' : '000000000'}
+                      />
+                      {p.documentNumber && !isDocValid(p) && (
+                        <p className="text-red-500 text-xs mt-0.5">
+                          {p.documentType === 'CI' ? 'La cédula debe tener exactamente 10 dígitos' : 'Mínimo 6 dígitos'}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
 
+              {/* Add passenger section */}
+              {showAddPicker ? (
+                <div className="border border-cominca-charcoal/20 bg-cominca-light p-4 space-y-3 animate-fadeIn">
+                  <p className="label-elegant">Selecciona el tipo de pasajero</p>
+                  <div className="space-y-2">
+                    {(selectedOption?.priceTiers || []).map(cat => (
+                      <button key={cat.id} type="button" onClick={() => addPassenger(cat)}
+                        className="w-full flex items-center justify-between px-4 py-3 border border-cominca-border bg-white hover:bg-cominca-light hover:border-cominca-charcoal transition-all text-left group">
+                        <span className="font-sans text-sm font-medium text-cominca-charcoal group-hover:text-cominca-forest transition-colors">
+                          {cat.categoryName}
+                        </span>
+                        <span className="font-sans text-sm text-cominca-sand">${Number(cat.price).toFixed(2)} {cat.currencyCode}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => setShowAddPicker(false)}
+                    className="text-xs font-sans text-cominca-sand hover:text-cominca-charcoal transition-colors">
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setShowAddPicker(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-cominca-border text-cominca-sand hover:text-cominca-charcoal hover:border-cominca-charcoal transition-colors font-sans text-sm">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                  </svg>
+                  Agregar pasajero
+                </button>
+              )}
+
               <div className="flex items-center justify-between pt-2">
                 <button onClick={() => setStep('slot')} className="btn-ghost text-xs px-4 py-2">← Atrás</button>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-sans text-cominca-charcoal font-medium">Total: ${total.toFixed(2)}</span>
+                  {passengers.length > 0 && (
+                    <span className="text-sm font-sans text-cominca-charcoal font-medium">
+                      Total: ${total.toFixed(2)} · {passengers.length} pax
+                    </span>
+                  )}
                   <button
                     onClick={() => setStep('billing')}
-                    disabled={passengers.some(p => !p.firstName || !p.lastName || !p.documentNumber)}
+                    disabled={passengers.length === 0 || passengers.some(p => !p.firstName || !p.lastName || !isDocValid(p))}
                     className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Continuar →
@@ -298,8 +376,20 @@ function BookingFlow({ detail, options, onClose, onBooked }) {
                   <input className="input-elegant w-full" value={billing.customerName} onChange={e => setBilling(b => ({ ...b, customerName: e.target.value }))} placeholder="María García" />
                 </div>
                 <div>
-                  <label className="label-elegant block mb-1">RUC / Cédula</label>
-                  <input className="input-elegant w-full" value={billing.taxId} onChange={e => setBilling(b => ({ ...b, taxId: e.target.value }))} placeholder="0912345678" />
+                  <label className="label-elegant block mb-1">
+                    RUC / Cédula
+                    <span className="ml-1 font-normal text-cominca-border normal-case">(solo números)</span>
+                  </label>
+                  <input
+                    className={`input-elegant w-full ${billing.taxId && billing.taxId.length !== 10 && billing.taxId.length !== 13 ? 'border-red-400' : ''}`}
+                    inputMode="numeric"
+                    value={billing.taxId}
+                    onChange={e => setBilling(b => ({ ...b, taxId: e.target.value.replace(/\D/g, '').slice(0, 13) }))}
+                    placeholder="0912345678"
+                  />
+                  {billing.taxId && billing.taxId.length !== 10 && billing.taxId.length !== 13 && (
+                    <p className="text-red-500 text-xs mt-0.5">Ingresa una cédula (10 dígitos) o RUC (13 dígitos)</p>
+                  )}
                 </div>
                 <div>
                   <label className="label-elegant block mb-1">Correo electrónico</label>

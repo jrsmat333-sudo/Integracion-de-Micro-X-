@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, Component } from 'react'
 import imagenUbicaciones from '../assets/imagen-ubicaciones1.jpg'
+import necoJobGif from '../assets/neco-arc-job.gif'
 import {
   getUsers, createUser, updateUserStatus, deleteUser,
   getClients, deleteClient,
@@ -2164,10 +2165,11 @@ export default function AdminPanel({ user, onLogout }) {
 
         <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
           <img src={logo} alt="Keo Arc" className="h-7 w-7 object-contain rounded-sm opacity-80" />
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="font-serif text-white text-base font-medium leading-tight">Keo Arc</p>
             <p className="text-white/40 text-xs font-sans">{user?.role === 'Admin' ? 'Admin' : 'Partner'}</p>
           </div>
+          <img src={necoJobGif} alt="" className="h-9 w-9 object-contain flex-shrink-0 rounded-sm" />
         </div>
 
         <nav className="flex-1 pt-4 overflow-y-auto">

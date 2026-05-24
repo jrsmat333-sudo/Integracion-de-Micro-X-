@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { smartLogin, registerCliente } from '../services/api'
+import nekoGif from '../assets/gif-nekoarc.gif'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,15 @@ export default function AuthModal({ initialTab = 'login', onClose, onAuth }) {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-cominca-charcoal/40 backdrop-blur-sm animate-fadeIn"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
+      {/* Loading gif — bottom-left corner, shown while any form is loading */}
+      {loading && (
+        <img
+          src={nekoGif}
+          alt=""
+          className="fixed bottom-6 left-6 w-20 h-20 object-contain z-[110] pointer-events-none animate-fadeIn"
+        />
+      )}
+
       {/* Card */}
       <div className="bg-cominca-cream w-full max-w-md border border-cominca-border shadow-2xl animate-fadeSlideUp">
 
