@@ -64,10 +64,11 @@ public class AtraccionesBookingController : ControllerBase
     [HttpGet("disponibilidad")]
     [AllowAnonymous] // Usualmente la disponibilidad es pública
     public async Task<ActionResult<ApiResponse<List<DisponibilidadDiariaDto>>>> ConsultarDisponibilidad(
-        [FromQuery] Guid attractionId, 
-        [FromQuery] DateOnly? fecha = null)
+        [FromQuery] Guid attractionId,
+        [FromQuery] DateOnly? fecha = null,
+        [FromQuery] Guid? productOptionId = null)
     {
-        var result = await _bookingService.ObtenerDisponibilidadAsync(attractionId, fecha);
+        var result = await _bookingService.ObtenerDisponibilidadAsync(attractionId, fecha, productOptionId);
         return Ok(result);
     }
 

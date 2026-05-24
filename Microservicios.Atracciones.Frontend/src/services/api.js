@@ -231,8 +231,11 @@ export const deleteTicketCategory = (id) =>
 
 // ── Booking (público)  →  /api/v1/booking ───────────────────────────────────
 
-export const getDisponibilidad = (attractionId, fecha = null) => {
-  const qs = new URLSearchParams({ attractionId, ...(fecha ? { fecha } : {}) }).toString()
+export const getDisponibilidad = (attractionId, productOptionId = null, fecha = null) => {
+  const params = { attractionId }
+  if (productOptionId) params.productOptionId = productOptionId
+  if (fecha) params.fecha = fecha
+  const qs = new URLSearchParams(params).toString()
   return request('GET', `/api/v1/booking/disponibilidad?${qs}`)
 }
 

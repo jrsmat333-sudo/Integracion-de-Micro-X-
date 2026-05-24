@@ -37,26 +37,33 @@ function formatDuration(minutes) {
 function BookingFlow({ detail, options, onClose, onBooked }) {
   const [step, setStep] = useState('slot')        // slot | passengers | billing | confirm
   const [disponibilidad, setDisponibilidad] = useState([])
-  const [loadingSlots, setLoadingSlots] = useState(true)
+  const [loadingSlots, setLoadingSlots] = useState(false)
   const [selectedDay, setSelectedDay] = useState(null)
   const [selectedSlot, setSelectedSlot] = useState(null)
-  const [selectedOption, setSelectedOption] = useState(options[0] ?? null)
+  // Auto-select when there's only one option; otherwise require explicit selection
+  const [selectedOption, setSelectedOption] = useState(options.length === 1 ? options[0] : null)
   const [passengers, setPassengers] = useState([])
   const [billing, setBilling] = useState({ customerName: '', taxId: '', email: '', address: '' })
   const [submitting, setSubmitting] = useState(false)
   const [bookingError, setBookingError] = useState(null)
 
+  // Load availability only after an option is chosen, filtered by its productOptionId
   useEffect(() => {
-    if (!detail?.id) return
+    if (!detail?.id || !selectedOption?.id) {
+      setDisponibilidad([])
+      return
+    }
     setLoadingSlots(true)
-    getDisponibilidad(detail.id)
+    setSelectedDay(null)
+    setSelectedSlot(null)
+    getDisponibilidad(detail.id, selectedOption.id)
       .then(raw => {
         const d = raw?.data ?? raw
         setDisponibilidad(Array.isArray(d) ? d : [])
       })
       .catch(() => setDisponibilidad([]))
       .finally(() => setLoadingSlots(false))
-  }, [detail?.id])
+  }, [detail?.id, selectedOption?.id])
 
   // Build one passenger entry per priceTier of selected option
   function initPassengers(opt) {
@@ -161,7 +168,7 @@ function BookingFlow({ detail, options, onClose, onBooked }) {
           {/* ── STEP 1: Slot selection ── */}
           {step === 'slot' && (
             <div className="space-y-5">
-              {options.length > 1 && (
+              {options.length > 0 && (
                 <div>
                   <p className="label-elegant mb-3">Modalidad</p>
                   <div className="space-y-2">
@@ -183,7 +190,11 @@ function BookingFlow({ detail, options, onClose, onBooked }) {
 
               <div>
                 <p className="label-elegant mb-3">Disponibilidad</p>
-                {loadingSlots ? (
+                {!selectedOption ? (
+                  <p className="font-sans text-cominca-sand text-sm py-6 text-center bg-cominca-light border border-cominca-border">
+                    Selecciona una modalidad para ver la disponibilidad.
+                  </p>
+                ) : loadingSlots ? (
                   <div className="h-32 flex items-center justify-center">
                     <div className="w-6 h-6 border-2 border-cominca-forest border-t-transparent rounded-full animate-spin" />
                   </div>

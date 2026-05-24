@@ -10,8 +10,10 @@ public interface IBookingIntegrationService
 {
     /// <summary>
     /// Consulta la disponibilidad de una atracción agrupada por día.
+    /// Si se proporciona productOptionId, filtra por esa modalidad específica;
+    /// de lo contrario filtra por attractionId (legacy).
     /// </summary>
-    Task<ApiResponse<List<DisponibilidadDiariaDto>>> ObtenerDisponibilidadAsync(Guid attractionId, DateOnly? fecha = null);
+    Task<ApiResponse<List<DisponibilidadDiariaDto>>> ObtenerDisponibilidadAsync(Guid attractionId, DateOnly? fecha = null, Guid? productOptionId = null);
 
     // ── Transacciones ─────────────────────────────────────
 

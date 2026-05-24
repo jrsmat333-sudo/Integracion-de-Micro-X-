@@ -1255,6 +1255,74 @@ function ProductOptionFormModal({ attractionId, initial, categories, onClose, on
   )
 }
 
+function SlotFormModal({ opt, onClose, onToast }) {
+  const [form, setForm] = useState({ slotDate: '', startTime: '', endTime: '', capacityTotal: 1 })
+  const [loading, setLoading] = useState(false)
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!form.slotDate || !form.startTime || form.capacityTotal < 1) return
+    setLoading(true)
+    try {
+      await createInventorySlot({
+        productOptionId: opt.id,
+        slotDate:        form.slotDate,
+        startTime:       form.startTime,
+        endTime:         form.endTime || null,
+        capacityTotal:   Number(form.capacityTotal),
+      })
+      onToast('Cupos asignados correctamente', 'success')
+      onClose()
+    } catch (err) {
+      onToast(err.message, 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[170] flex items-center justify-center bg-cominca-charcoal/50 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-cominca-cream border border-cominca-border shadow-xl w-full max-w-sm mx-4 animate-fadeSlideUp">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-cominca-border">
+          <div>
+            <p className="label-elegant mb-0.5">Asignar disponibilidad</p>
+            <h4 className="font-serif text-base font-light text-cominca-charcoal">{opt.title}</h4>
+          </div>
+          <button onClick={onClose} className="text-cominca-sand hover:text-cominca-charcoal transition-colors"><IconClose /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="label-elegant block mb-1">Fecha *</label>
+            <input type="date" required className="input-elegant w-full" value={form.slotDate} onChange={set('slotDate')} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-elegant block mb-1">Hora inicio *</label>
+              <input type="time" required className="input-elegant w-full" value={form.startTime} onChange={set('startTime')} />
+            </div>
+            <div>
+              <label className="label-elegant block mb-1">Hora fin</label>
+              <input type="time" className="input-elegant w-full" value={form.endTime} onChange={set('endTime')} />
+            </div>
+          </div>
+          <div>
+            <label className="label-elegant block mb-1">Cupos totales *</label>
+            <input type="number" min="1" max="9999" required className="input-elegant w-full"
+              value={form.capacityTotal} onChange={e => setForm(f => ({ ...f, capacityTotal: e.target.value }))} />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-ghost text-xs px-4 py-2">Cancelar</button>
+            <button type="submit" disabled={loading} className="btn-primary text-xs px-4 py-2 disabled:opacity-40">
+              {loading ? 'Guardando…' : 'Guardar cupos'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 function ProductOptionsModal({ attraction, onClose, onToast }) {
   const [options, setOptions]       = useState([])
   const [categories, setCategories] = useState([])
@@ -1262,6 +1330,7 @@ function ProductOptionsModal({ attraction, onClose, onToast }) {
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing]       = useState(null)
   const [confirm, setConfirm]       = useState(null)
+  const [slotModal, setSlotModal]   = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -1357,6 +1426,13 @@ function ProductOptionsModal({ attraction, onClose, onToast }) {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
+                      <button
+                        onClick={() => setSlotModal(opt)}
+                        title="Asignar disponibilidad"
+                        className="text-cominca-sand hover:text-cominca-forest transition-colors p-1"
+                      >
+                        <IconCalendar />
+                      </button>
                       <ToggleSwitch checked={opt.isActive} onChange={() => handleToggle(opt)} />
                       <button onClick={() => setEditing(opt)} className="text-cominca-sand hover:text-cominca-charcoal transition-colors p-1">
                         <IconEdit />
@@ -1397,6 +1473,13 @@ function ProductOptionsModal({ attraction, onClose, onToast }) {
           message={`¿Eliminar la modalidad "${confirm.name}"?`}
           onConfirm={() => handleDelete(confirm.id)}
           onCancel={() => setConfirm(null)}
+        />
+      )}
+      {slotModal && (
+        <SlotFormModal
+          opt={slotModal}
+          onClose={() => setSlotModal(null)}
+          onToast={onToast}
         />
       )}
     </div>
@@ -2058,7 +2141,6 @@ const NAV_GROUPS = [
   {
     label: 'Operaciones',
     items: [
-      { id: 'inventory',   label: 'Cupos',        Icon: IconCalendar },
       { id: 'bookings',    label: 'Reservas',     Icon: IconBookmark },
       { id: 'billing',     label: 'Facturación',  Icon: IconReceipt  },
     ],
@@ -2130,7 +2212,6 @@ export default function AdminPanel({ user, onLogout }) {
           {section === 'locations'   && <LocationsSection        onToast={showToast} />}
           {section === 'categories'  && <TicketCategoriesSection onToast={showToast} />}
           {section === 'attractions' && <AttractionsSection      onToast={showToast} userRole={user?.role} />}
-          {section === 'inventory'   && <AdminInventorySection   onToast={showToast} />}
           {section === 'bookings'    && <AdminBookingsSection    onToast={showToast} />}
           {section === 'billing'     && <AdminBillingSection     onToast={showToast} />}
         </ErrorBoundary>

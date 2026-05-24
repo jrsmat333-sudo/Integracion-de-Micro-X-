@@ -37,16 +37,19 @@ public class BookingIntegrationService : IBookingIntegrationService
     // DISPONIBILIDAD AGRUPADA POR DÍA
     // ══════════════════════════════════════════════════
 
-    public async Task<ApiResponse<List<DisponibilidadDiariaDto>>> ObtenerDisponibilidadAsync(Guid attractionId, DateOnly? fecha = null)
+    public async Task<ApiResponse<List<DisponibilidadDiariaDto>>> ObtenerDisponibilidadAsync(Guid attractionId, DateOnly? fecha = null, Guid? productOptionId = null)
     {
         var fechaInicio = fecha ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var fechaFin = fecha.HasValue
             ? fecha.Value
             : DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
 
+        // Slots are stored with ProductId = productOptionId; filter by it when provided.
+        var filterId = productOptionId ?? attractionId;
+
         var slots = await _uow.AvailabilitySlots.Query()
             .Where(s =>
-                s.ProductId == attractionId &&
+                s.ProductId == filterId &&
                 s.IsActive &&
                 s.SlotDate >= fechaInicio &&
                 s.SlotDate <= fechaFin &&
