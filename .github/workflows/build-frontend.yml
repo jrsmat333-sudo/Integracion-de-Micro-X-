@@ -1,0 +1,40 @@
+name: Build & Push Frontend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Microservicios.Atracciones.Frontend/**'
+      - '.github/workflows/build-frontend.yml'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código fuente
+        uses: actions/checkout@v4
+
+      - name: Login a Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build imagen Docker
+        run: |
+          docker build \
+            -f Microservicios.Atracciones.Frontend/Dockerfile \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
+            .
+
+      - name: Push imagen a ACR
+        run: |
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
