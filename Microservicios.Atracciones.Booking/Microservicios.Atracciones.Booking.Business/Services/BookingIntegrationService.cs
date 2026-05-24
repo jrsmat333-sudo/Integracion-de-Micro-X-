@@ -87,7 +87,7 @@ public class BookingIntegrationService : IBookingIntegrationService
         // Resolver userId: si no hay JWT, generar un UUID como usuario invitado
         var resolvedUserId = userId ?? Guid.NewGuid();
 
-        var slot = await _uow.AvailabilitySlots.Query()
+        var slot = await _uow.AvailabilitySlots.Query(false)
             .FirstOrDefaultAsync(s => s.Id == request.SlotId && s.IsActive);
 
         if (slot == null)
