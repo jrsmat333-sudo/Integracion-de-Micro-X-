@@ -224,11 +224,11 @@ public class BookingIntegrationService : IBookingIntegrationService
         }
     }
 
-    public async Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid userId)
+    public async Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid? userId = null)
     {
-        var booking = await _uow.Bookings.Query()
+        var booking = await _uow.Bookings.Query(false)
             .Include(b => b.AvailabilitySlot)
-            .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
+            .FirstOrDefaultAsync(b => b.Id == bookingId);
 
         if (booking == null)
             return ApiResponse<bool>.Fail("Reserva no encontrada.");

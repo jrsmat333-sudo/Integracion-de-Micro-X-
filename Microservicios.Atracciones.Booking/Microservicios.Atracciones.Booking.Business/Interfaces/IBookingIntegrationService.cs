@@ -25,7 +25,7 @@ public interface IBookingIntegrationService
     /// <summary>
     /// Cancela una reserva existente y libera los cupos.
     /// </summary>
-    Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid userId);
+    Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid? userId = null);
 
     /// <summary>
     /// Lista las reservas realizadas por un usuario.

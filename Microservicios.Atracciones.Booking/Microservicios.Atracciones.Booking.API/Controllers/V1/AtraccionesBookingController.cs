@@ -45,12 +45,12 @@ public class AtraccionesBookingController : ControllerBase
     /// Cancela una reserva y libera los cupos en el inventario.
     /// </summary>
     [HttpPost("{id:guid}/cancel")]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<bool>>> CancelarReserva(Guid id)
     {
         var userId = GetUserId();
-        if (userId == null) return Unauthorized();
 
-        var result = await _bookingService.CancelarReservaAsync(id, userId.Value);
+        var result = await _bookingService.CancelarReservaAsync(id, userId);
 
         if (!result.Success)
             return BadRequest(result);
