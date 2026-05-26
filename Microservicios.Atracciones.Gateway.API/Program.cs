@@ -126,6 +126,99 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
     }
 });
 
+// -----------------------------------------------------------------------------
+// ENDPOINT INTERCEPTOR: Disponibilidad global por atracción (Bugfix Integradores)
+// -----------------------------------------------------------------------------
+app.MapGet("/api/v1/booking/disponibilidad", async (Guid? attractionId, Guid? productOptionId, string? fecha, IHttpClientFactory clientFactory, IConfiguration config) =>
+{
+    try
+    {
+        var client = clientFactory.CreateClient();
+        var bookingBaseUrl = config["ReverseProxy:Clusters:booking-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
+        var catalogBaseUrl = config["ReverseProxy:Clusters:catalog-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
+
+        if (string.IsNullOrEmpty(bookingBaseUrl) || string.IsNullOrEmpty(catalogBaseUrl))
+            return Results.StatusCode(500);
+
+        // Si mandaron productOptionId explícitamente o NO mandaron attractionId,
+        // pasamos la consulta directamente al microservicio de booking
+        if (productOptionId.HasValue || !attractionId.HasValue)
+        {
+            var url = $"{bookingBaseUrl}/api/v1/booking/disponibilidad?";
+            if (productOptionId.HasValue) url += $"productOptionId={productOptionId.Value}&";
+            if (attractionId.HasValue) url += $"attractionId={attractionId.Value}&";
+            if (!string.IsNullOrEmpty(fecha)) url += $"fecha={fecha}";
+            url = url.TrimEnd('&', '?');
+
+            var res = await client.GetAsync(url);
+            var content = await res.Content.ReadAsStringAsync();
+            return Results.Content(content, "application/json", System.Text.Encoding.UTF8, (int)res.StatusCode);
+        }
+
+        // CASO ESPECIAL: El integrador mandó attractionId pero no productOptionId.
+        // 1. Obtener todas las modalidades (Product Options) de esta atracción
+        var poRes = await client.GetAsync($"{catalogBaseUrl}/api/v1/productoption/by-attraction/{attractionId.Value}");
+        if (!poRes.IsSuccessStatusCode)
+            return Results.StatusCode((int)poRes.StatusCode);
+        
+        var poJson = await poRes.Content.ReadAsStringAsync();
+        var poNode = JsonNode.Parse(poJson);
+        var productsArray = poNode?["data"]?.AsArray() ?? poNode?.AsArray();
+        
+        var productIds = new List<string>();
+        if (productsArray != null)
+        {
+            foreach (var prod in productsArray)
+            {
+                var pId = prod?["id"]?.ToString();
+                if (!string.IsNullOrEmpty(pId)) productIds.Add(pId);
+            }
+        }
+
+        // 2. Pedir disponibilidad a Booking de manera individual para cada modalidad y agruparla
+        var allAvailability = new JsonArray();
+        foreach (var pId in productIds)
+        {
+            var url = $"{bookingBaseUrl}/api/v1/booking/disponibilidad?productOptionId={pId}";
+            if (!string.IsNullOrEmpty(fecha)) url += $"&fecha={fecha}";
+            
+            var avRes = await client.GetAsync(url);
+            if (avRes.IsSuccessStatusCode)
+            {
+                var avJsonStr = await avRes.Content.ReadAsStringAsync();
+                var avNode = JsonNode.Parse(avJsonStr);
+                var avDataArray = avNode?["data"]?.AsArray();
+                if (avDataArray != null)
+                {
+                    foreach (var item in avDataArray)
+                    {
+                        var clonedItem = JsonNode.Parse(item!.ToJsonString());
+                        if (clonedItem != null)
+                        {
+                            clonedItem["productOptionId"] = pId;
+                            allAvailability.Add(clonedItem);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Responder con la estructura de ApiResponse que espera el integrador
+        var finalResponse = new
+        {
+            success = true,
+            data = allAvailability,
+            message = "Disponibilidad obtenida exitosamente"
+        };
+
+        return Results.Ok(finalResponse);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
 // Mapear el Reverse Proxy
 app.MapReverseProxy();
 
