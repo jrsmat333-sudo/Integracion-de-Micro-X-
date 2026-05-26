@@ -126,9 +126,22 @@ public class BookingIntegrationService : IBookingIntegrationService
 
         foreach (var t in request.Tickets)
         {
-            var officialTier = grpcResponse.PriceTiers.FirstOrDefault(pt => pt.PriceTierId == t.PriceTierId?.ToString());
+            // Match exacto por id (flujo del frontend). Si falla, tomamos el primer tier
+            // oficial devuelto por gRPC: caso integrador externo que envía product.id como
+            // priceTierId — el gRPC ya hizo el fallback al tier más barato del producto.
+            var officialTier =
+                grpcResponse.PriceTiers.FirstOrDefault(pt => pt.PriceTierId == t.PriceTierId?.ToString())
+                ?? grpcResponse.PriceTiers.FirstOrDefault();
+
             if (officialTier == null)
                 return ApiResponse<AtraccionBookingResponseDto>.Fail($"La categoría de precio {t.PriceTierId} ya no está disponible.");
+
+            // Sustituimos el priceTierId del ticket por el OFICIAL devuelto por gRPC para
+            // mantener integridad referencial en BookingDetail (evita guardar product.id en PriceTierId).
+            if (Guid.TryParse(officialTier.PriceTierId, out Guid officialTierGuid))
+            {
+                t.PriceTierId = officialTierGuid;
+            }
 
             t.PriceTierLabel = officialTier.Label;
             t.UnitPrice = (decimal)officialTier.Price; // Sobrescribimos el precio del request con el oficial de gRPC

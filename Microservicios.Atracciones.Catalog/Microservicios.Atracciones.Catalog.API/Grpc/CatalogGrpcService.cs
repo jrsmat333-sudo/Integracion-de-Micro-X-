@@ -1,5 +1,6 @@
 using Grpc.Core;
 using Microservicios.Atracciones.Shared.gRPC;
+using Microservicios.Atracciones.Catalog.DataAccess.Entities;
 using Microservicios.Atracciones.Catalog.DataAccess.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microservicios.Atracciones.Catalog.DataAccess.Context;
@@ -70,27 +71,54 @@ public class CatalogGrpcService : CatalogService.CatalogServiceBase
                 CurrencyCode = "USD"
             };
 
+            // Fallback compartido: el priceTier oficial más barato y activo del producto.
+            // Lo usamos cuando un integrador externo envía product.id (o un id inválido)
+            // como priceTierId — convención que documentamos al comparar payloads con Venturo.
+            var fallbackTier = product.PriceTiers
+                .Where(pt => pt.IsActive)
+                .OrderBy(pt => pt.Price)
+                .FirstOrDefault();
+
             foreach (var requestedTierId in request.PriceTierIds)
             {
+                PriceTier? priceTier = null;
                 if (Guid.TryParse(requestedTierId, out Guid tierId))
                 {
-                    var priceTier = product.PriceTiers.FirstOrDefault(pt => pt.Id == tierId && pt.IsActive);
-                    if (priceTier != null)
-                    {
-                        var label = priceTier.TicketCategory?.Name ?? "General";
-                        _logger.LogInformation("PriceTier validado: {TierId} -> Label: {Label}, Precio oficial: {Price}", tierId, label, priceTier.Price);
+                    priceTier = product.PriceTiers.FirstOrDefault(pt => pt.Id == tierId && pt.IsActive);
+                }
 
-                        response.PriceTiers.Add(new PriceTierResponse
-                        {
-                            PriceTierId = priceTier.Id.ToString(),
-                            Label = label,
-                            Price = (double)priceTier.Price
-                        });
-                    }
-                    else
+                if (priceTier != null)
+                {
+                    var label = priceTier.TicketCategory?.Name ?? "General";
+                    _logger.LogInformation("PriceTier validado: {TierId} -> Label: {Label}, Precio oficial: {Price}", tierId, label, priceTier.Price);
+
+                    response.PriceTiers.Add(new PriceTierResponse
                     {
-                        _logger.LogWarning("PriceTier {TierId} no encontrado o no activo en producto {ProductTitle}.", tierId, product.Title);
-                    }
+                        PriceTierId = priceTier.Id.ToString(),
+                        Label = label,
+                        Price = (double)priceTier.Price
+                    });
+                }
+                else if (fallbackTier != null)
+                {
+                    // El integrador mandó un id que no es un priceTier real (típicamente product.id).
+                    // Devolvemos el priceTier oficial más barato del producto. Como el id devuelto
+                    // será distinto al solicitado, el BookingIntegrationService debe tener lógica
+                    // de fallback (no exigir match exacto por id).
+                    var label = fallbackTier.TicketCategory?.Name ?? "General";
+                    _logger.LogWarning("PriceTier {RequestedId} no es un priceTier real. Sustituyendo por el oficial más barato ({RealId}, {Price} {Currency}).",
+                        requestedTierId, fallbackTier.Id, fallbackTier.Price, fallbackTier.CurrencyCode);
+
+                    response.PriceTiers.Add(new PriceTierResponse
+                    {
+                        PriceTierId = fallbackTier.Id.ToString(),
+                        Label = label,
+                        Price = (double)fallbackTier.Price
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("PriceTier {TierId} no encontrado y producto {ProductTitle} no tiene tiers activos para fallback.", requestedTierId, product.Title);
                 }
             }
 
