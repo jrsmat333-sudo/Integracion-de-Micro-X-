@@ -83,7 +83,8 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
             }
         }
 
-        // 1.5 Iterar sobre los products para arreglar priceTiers (inyectar label) y calcular precios mínimos
+        // 1.5 Iterar sobre los products: calcular precios mínimos y reconstruir priceTiers
+        // garantizando que price NUNCA sea 0 (si lo es, se sustituye por startingPrice del producto).
         decimal minAttractionPrice = decimal.MaxValue;
         if (productsArray != null)
         {
@@ -91,49 +92,76 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
             {
                 var priceTiers = prod?["priceTiers"]?.AsArray();
                 decimal minProductPrice = decimal.MaxValue;
-                
+
+                // ── Pasada 1: descubrir el precio mínimo real (> 0) del producto ──
+                var rawTiers = new List<(JsonNode original, decimal price)>();
+                if (priceTiers != null)
+                {
+                    foreach (var pt in priceTiers)
+                    {
+                        if (pt == null) continue;
+                        decimal priceVal = 0m;
+                        var priceToken = pt["price"];
+                        if (priceToken != null)
+                        {
+                            try { priceVal = (decimal)priceToken; }
+                            catch { try { priceVal = decimal.Parse(priceToken.ToString(), System.Globalization.CultureInfo.InvariantCulture); } catch { priceVal = 0m; } }
+                        }
+                        if (priceVal > 0m && priceVal < minProductPrice) minProductPrice = priceVal;
+                        rawTiers.Add((pt, priceVal));
+                    }
+                }
+
+                decimal fallbackPrice = minProductPrice != decimal.MaxValue ? minProductPrice : 0m;
+                if (fallbackPrice > 0m && fallbackPrice < minAttractionPrice) minAttractionPrice = fallbackPrice;
+
+                // ── Pasada 2: reconstruir priceTiers garantizando price > 0 ──
                 if (priceTiers != null)
                 {
                     var newPriceTiers = new JsonArray();
-                    foreach (var pt in priceTiers)
+                    foreach (var (originalPt, price) in rawTiers)
                     {
-                        // Buscar el precio más bajo
-                        var priceToken = pt?["price"];
-                        if (priceToken != null)
+                        var effectivePrice = price > 0m ? price : fallbackPrice;
+
+                        var newPt = new JsonObject();
+                        newPt["id"] = originalPt["id"]?.ToString();
+                        newPt["price"] = effectivePrice;
+                        newPt["currencyCode"] = originalPt["currencyCode"]?.ToString() ?? "USD";
+
+                        // categoryName se mantiene porque el frontend lo necesita como label.
+                        // (No agregamos "label" porque el integrador externo crashea con ese campo.)
+                        var categoryName = originalPt["categoryName"]?.ToString();
+                        if (!string.IsNullOrEmpty(categoryName))
                         {
-                            try
-                            {
-                                var priceVal = (decimal)priceToken;
-                                if (priceVal < minProductPrice) minProductPrice = priceVal;
-                                if (priceVal < minAttractionPrice) minAttractionPrice = priceVal;
-                            }
-                            catch { /* ignorar si no es numero */ }
+                            newPt["categoryName"] = categoryName;
                         }
-                        
-                        // Reconstruir estrictamente para el integrador (evita fallos de deserialización estricta)
-                        if (pt != null)
-                        {
-                            var newPt = new JsonObject();
-                            newPt["id"] = pt["id"]?.ToString();
-                            // El integrador solo mapea id, price y currencyCode. Agregar otros campos causa crash en su deserializador estricto.
-                            newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
-                            newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
-                            
-                            newPriceTiers.Add(newPt);
-                        }
+
+                        newPriceTiers.Add(newPt);
                     }
+
+                    // Si no había priceTiers o todos vinieron en 0 sin fallback, generamos uno sintético
+                    // para que el integrador nunca reciba un array vacío que rompa su deserializador.
+                    if (newPriceTiers.Count == 0 && prod != null)
+                    {
+                        var stub = new JsonObject();
+                        stub["id"] = prod["id"]?.ToString();
+                        stub["price"] = fallbackPrice;
+                        stub["currencyCode"] = "USD";
+                        newPriceTiers.Add(stub);
+                    }
+
                     if (prod != null)
                     {
                         prod["priceTiers"] = newPriceTiers;
                     }
                 }
-                
+
                 // Inyectar el precio directamente en el producto por si el integrador mapea 'price' o 'startingPrice' en la raíz
-                if (prod != null && minProductPrice != decimal.MaxValue)
+                if (prod != null && fallbackPrice > 0m)
                 {
-                    prod["price"] = minProductPrice;
-                    prod["startingPrice"] = minProductPrice;
-                    prod["precio"] = minProductPrice;
+                    prod["price"] = fallbackPrice;
+                    prod["startingPrice"] = fallbackPrice;
+                    prod["precio"] = fallbackPrice;
                 }
             }
         }
@@ -387,30 +415,67 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
             foreach (var prod in productsArray)
             {
                 var priceTiers = prod?["priceTiers"]?.AsArray();
-                if (priceTiers != null)
+                if (priceTiers == null) continue;
+
+                // ── Pasada 1: descubrir el precio mínimo real (> 0) del producto ──
+                decimal minProductPrice = decimal.MaxValue;
+                var rawTiers = new List<(JsonNode original, decimal price)>();
+                foreach (var pt in priceTiers)
                 {
-                    var newPriceTiers = new JsonArray();
-                    foreach (var pt in priceTiers)
+                    if (pt == null) continue;
+                    decimal priceVal = 0m;
+                    var priceToken = pt["price"];
+                    if (priceToken != null)
                     {
-                        if (pt != null)
-                        {
-                            var newPt = new JsonObject();
-                            newPt["id"] = pt["id"]?.ToString();
-                            var priceToken = pt["price"];
-                            newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
-                            newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
-                            
-                            newPriceTiers.Add(newPt);
-                        }
+                        try { priceVal = (decimal)priceToken; }
+                        catch { try { priceVal = decimal.Parse(priceToken.ToString(), System.Globalization.CultureInfo.InvariantCulture); } catch { priceVal = 0m; } }
                     }
-                    if (prod != null)
+                    if (priceVal > 0m && priceVal < minProductPrice) minProductPrice = priceVal;
+                    rawTiers.Add((pt, priceVal));
+                }
+
+                decimal fallbackPrice = minProductPrice != decimal.MaxValue ? minProductPrice : 0m;
+
+                // ── Pasada 2: reconstruir priceTiers garantizando price > 0 ──
+                var newPriceTiers = new JsonArray();
+                foreach (var (originalPt, price) in rawTiers)
+                {
+                    var effectivePrice = price > 0m ? price : fallbackPrice;
+                    var newPt = new JsonObject();
+                    newPt["id"] = originalPt["id"]?.ToString();
+                    newPt["price"] = effectivePrice;
+                    newPt["currencyCode"] = originalPt["currencyCode"]?.ToString() ?? "USD";
+
+                    var categoryName = originalPt["categoryName"]?.ToString();
+                    if (!string.IsNullOrEmpty(categoryName))
                     {
-                        prod["priceTiers"] = newPriceTiers;
+                        newPt["categoryName"] = categoryName;
+                    }
+                    newPriceTiers.Add(newPt);
+                }
+
+                if (newPriceTiers.Count == 0 && prod != null && fallbackPrice > 0m)
+                {
+                    var stub = new JsonObject();
+                    stub["id"] = prod["id"]?.ToString();
+                    stub["price"] = fallbackPrice;
+                    stub["currencyCode"] = "USD";
+                    newPriceTiers.Add(stub);
+                }
+
+                if (prod != null)
+                {
+                    prod["priceTiers"] = newPriceTiers;
+                    if (fallbackPrice > 0m)
+                    {
+                        prod["price"] = fallbackPrice;
+                        prod["startingPrice"] = fallbackPrice;
+                        prod["precio"] = fallbackPrice;
                     }
                 }
             }
         }
-        
+
         return Results.Content(node!.ToJsonString(), "application/json");
     }
     catch (Exception ex)
