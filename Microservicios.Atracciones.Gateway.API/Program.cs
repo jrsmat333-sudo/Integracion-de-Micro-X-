@@ -116,25 +116,34 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                 if (fallbackPrice > 0m && fallbackPrice < minAttractionPrice) minAttractionPrice = fallbackPrice;
 
                 // ── Pasada 2: reconstruir priceTiers garantizando price > 0 ──
+                // IMPORTANTE: ordenamos los tiers con price > 0 primero (el integrador externo
+                // suele leer priceTiers[0]; si el primero viniera con 0, devolvería 0).
                 if (priceTiers != null)
                 {
                     var newPriceTiers = new JsonArray();
-                    foreach (var (originalPt, price) in rawTiers)
+                    var orderedTiers = rawTiers
+                        .OrderByDescending(t => t.price > 0m)  // primero los reales (>0), luego los 0
+                        .ThenBy(t => t.price)                  // luego ascendente por precio
+                        .ToList();
+
+                    foreach (var (originalPt, price) in orderedTiers)
                     {
                         var effectivePrice = price > 0m ? price : fallbackPrice;
 
                         var newPt = new JsonObject();
+                        // El integrador usa product.id como priceTier.id en su modelo interno.
+                        // Mandar el id real del priceTier no cambia su comportamiento (lo sobrescribe).
                         newPt["id"] = originalPt["id"]?.ToString();
-                        newPt["price"] = effectivePrice;
+                        // Forzar serialización como número limpio (sin trailing zeros tipo "15.00"
+                        // que rompen parsers estrictos esperando int/double). Venturo manda price: 5,
+                        // nosotros debemos mandar price: 15, no price: 15.00.
+                        newPt["price"] = NormalizePrice(effectivePrice);
                         newPt["currencyCode"] = originalPt["currencyCode"]?.ToString() ?? "USD";
 
-                        // categoryName se mantiene porque el frontend lo necesita como label.
-                        // (No agregamos "label" porque el integrador externo crashea con ese campo.)
+                        // categoryName: requerido por el frontend (label) y observado en Venturo (proveedor que
+                        // sí funciona). Su ausencia parece ser lo que dispara el default price=0 en el integrador.
                         var categoryName = originalPt["categoryName"]?.ToString();
-                        if (!string.IsNullOrEmpty(categoryName))
-                        {
-                            newPt["categoryName"] = categoryName;
-                        }
+                        newPt["categoryName"] = !string.IsNullOrEmpty(categoryName) ? categoryName : "General";
 
                         newPriceTiers.Add(newPt);
                     }
@@ -145,8 +154,9 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                     {
                         var stub = new JsonObject();
                         stub["id"] = prod["id"]?.ToString();
-                        stub["price"] = fallbackPrice;
+                        stub["price"] = NormalizePrice(fallbackPrice);
                         stub["currencyCode"] = "USD";
+                        stub["categoryName"] = "General";
                         newPriceTiers.Add(stub);
                     }
 
@@ -159,9 +169,9 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                 // Inyectar el precio directamente en el producto por si el integrador mapea 'price' o 'startingPrice' en la raíz
                 if (prod != null && fallbackPrice > 0m)
                 {
-                    prod["price"] = fallbackPrice;
-                    prod["startingPrice"] = fallbackPrice;
-                    prod["precio"] = fallbackPrice;
+                    prod["price"] = NormalizePrice(fallbackPrice);
+                    prod["startingPrice"] = NormalizePrice(fallbackPrice);
+                    prod["precio"] = NormalizePrice(fallbackPrice);
                 }
             }
         }
@@ -200,7 +210,7 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
             
             // Inyectar startingPrice en el Attraction si el integrador lo busca ahí
             if (minAttractionPrice != decimal.MaxValue)
-                jsonObject["startingPrice"] = minAttractionPrice;
+                jsonObject["startingPrice"] = NormalizePrice(minAttractionPrice);
             else
                 jsonObject["startingPrice"] = 0;
         }
@@ -436,21 +446,23 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
 
                 decimal fallbackPrice = minProductPrice != decimal.MaxValue ? minProductPrice : 0m;
 
-                // ── Pasada 2: reconstruir priceTiers garantizando price > 0 ──
+                // ── Pasada 2: reconstruir priceTiers (priorizando > 0 al frente) ──
                 var newPriceTiers = new JsonArray();
-                foreach (var (originalPt, price) in rawTiers)
+                var orderedTiers = rawTiers
+                    .OrderByDescending(t => t.price > 0m)
+                    .ThenBy(t => t.price)
+                    .ToList();
+
+                foreach (var (originalPt, price) in orderedTiers)
                 {
                     var effectivePrice = price > 0m ? price : fallbackPrice;
                     var newPt = new JsonObject();
                     newPt["id"] = originalPt["id"]?.ToString();
-                    newPt["price"] = effectivePrice;
+                    newPt["price"] = NormalizePrice(effectivePrice);
                     newPt["currencyCode"] = originalPt["currencyCode"]?.ToString() ?? "USD";
 
                     var categoryName = originalPt["categoryName"]?.ToString();
-                    if (!string.IsNullOrEmpty(categoryName))
-                    {
-                        newPt["categoryName"] = categoryName;
-                    }
+                    newPt["categoryName"] = !string.IsNullOrEmpty(categoryName) ? categoryName : "General";
                     newPriceTiers.Add(newPt);
                 }
 
@@ -458,8 +470,9 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
                 {
                     var stub = new JsonObject();
                     stub["id"] = prod["id"]?.ToString();
-                    stub["price"] = fallbackPrice;
+                    stub["price"] = NormalizePrice(fallbackPrice);
                     stub["currencyCode"] = "USD";
+                    stub["categoryName"] = "General";
                     newPriceTiers.Add(stub);
                 }
 
@@ -468,9 +481,9 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
                     prod["priceTiers"] = newPriceTiers;
                     if (fallbackPrice > 0m)
                     {
-                        prod["price"] = fallbackPrice;
-                        prod["startingPrice"] = fallbackPrice;
-                        prod["precio"] = fallbackPrice;
+                        prod["price"] = NormalizePrice(fallbackPrice);
+                        prod["startingPrice"] = NormalizePrice(fallbackPrice);
+                        prod["precio"] = NormalizePrice(fallbackPrice);
                     }
                 }
             }
@@ -488,3 +501,21 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
 app.MapReverseProxy();
 
 app.Run();
+
+// -----------------------------------------------------------------------------
+// HELPERS
+// -----------------------------------------------------------------------------
+// NormalizePrice: convierte un decimal con scale (ej. 15.00m) a un número JSON
+// limpio sin trailing zeros (15 en vez de 15.00). El integrador externo y
+// Venturo (proveedor que sí funciona) usan price como número entero/double.
+// Mandar "15.00" rompe deserializadores estrictos tipados como int.
+static JsonNode NormalizePrice(decimal value)
+{
+    // Si el valor es un entero exacto, lo emitimos como long (sin decimales).
+    if (value == decimal.Truncate(value))
+    {
+        return JsonValue.Create((long)value);
+    }
+    // Si tiene parte fraccionaria, lo emitimos como double (sin scale extra).
+    return JsonValue.Create((double)value);
+}
