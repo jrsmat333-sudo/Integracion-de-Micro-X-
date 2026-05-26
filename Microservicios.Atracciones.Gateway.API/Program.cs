@@ -348,6 +348,53 @@ var bookingInterceptor = async (HttpContext context, IHttpClientFactory clientFa
 app.MapPost("/booking", bookingInterceptor);
 app.MapPost("/api/v1/booking", bookingInterceptor);
 
+// -----------------------------------------------------------------------------
+// ENDPOINT INTERCEPTOR: GET /api/v1/productoption/by-attraction/{attractionId}
+// -----------------------------------------------------------------------------
+app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid attractionId, IHttpClientFactory clientFactory, IConfiguration config) =>
+{
+    try
+    {
+        var client = clientFactory.CreateClient();
+        var catalogBaseUrl = config["ReverseProxy:Clusters:catalog-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
+
+        if (string.IsNullOrEmpty(catalogBaseUrl))
+            return Results.StatusCode(500);
+
+        var res = await client.GetAsync($"{catalogBaseUrl}/api/v1/productoption/by-attraction/{attractionId}");
+        if (!res.IsSuccessStatusCode)
+            return Results.StatusCode((int)res.StatusCode);
+
+        var json = await res.Content.ReadAsStringAsync();
+        var node = JsonNode.Parse(json);
+        
+        var productsArray = node?["data"]?.AsArray() ?? node?.AsArray();
+        if (productsArray != null)
+        {
+            foreach (var prod in productsArray)
+            {
+                var priceTiers = prod?["priceTiers"]?.AsArray();
+                if (priceTiers != null)
+                {
+                    foreach (var pt in priceTiers)
+                    {
+                        if (pt != null && pt["categoryName"] != null)
+                        {
+                            pt["label"] = pt["categoryName"]?.ToString();
+                        }
+                    }
+                }
+            }
+        }
+        
+        return Results.Content(node!.ToJsonString(), "application/json");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
 // Mapear el Reverse Proxy
 app.MapReverseProxy();
 
