@@ -94,14 +94,9 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                 
                 if (priceTiers != null)
                 {
+                    var newPriceTiers = new JsonArray();
                     foreach (var pt in priceTiers)
                     {
-                        // Asegurar compatibilidad inyectando 'label' como lo pide iNtegracion X.md
-                        if (pt != null && pt["categoryName"] != null)
-                        {
-                            pt["label"] = pt["categoryName"]?.ToString();
-                        }
-                        
                         // Buscar el precio más bajo
                         var priceToken = pt?["price"];
                         if (priceToken != null)
@@ -114,6 +109,22 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                             }
                             catch { /* ignorar si no es numero */ }
                         }
+                        
+                        // Reconstruir estrictamente para el integrador (evita fallos de deserialización estricta)
+                        if (pt != null)
+                        {
+                            var newPt = new JsonObject();
+                            newPt["id"] = pt["id"]?.ToString();
+                            newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
+                            newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
+                            newPt["currency"] = pt["currencyCode"]?.ToString() ?? "USD";
+                            newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
+                            newPriceTiers.Add(newPt);
+                        }
+                    }
+                    if (prod != null)
+                    {
+                        prod["priceTiers"] = newPriceTiers;
                     }
                 }
                 
@@ -376,12 +387,24 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
                 var priceTiers = prod?["priceTiers"]?.AsArray();
                 if (priceTiers != null)
                 {
+                    var newPriceTiers = new JsonArray();
                     foreach (var pt in priceTiers)
                     {
-                        if (pt != null && pt["categoryName"] != null)
+                        if (pt != null)
                         {
-                            pt["label"] = pt["categoryName"]?.ToString();
+                            var newPt = new JsonObject();
+                            newPt["id"] = pt["id"]?.ToString();
+                            newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
+                            var priceToken = pt["price"];
+                            newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
+                            newPt["currency"] = pt["currencyCode"]?.ToString() ?? "USD";
+                            newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
+                            newPriceTiers.Add(newPt);
                         }
+                    }
+                    if (prod != null)
+                    {
+                        prod["priceTiers"] = newPriceTiers;
                     }
                 }
             }
