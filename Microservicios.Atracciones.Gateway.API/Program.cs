@@ -24,18 +24,34 @@ app.UseCors("AllowAll");
 // -----------------------------------------------------------------------------
 // ENDPOINT AGREGADOR (BFF): Detalle + Opciones + Disponibilidad
 // -----------------------------------------------------------------------------
-app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory clientFactory, IConfiguration config) =>
+app.MapGet("/api/v1/attraction/{slug}", async (string slug, HttpContext context, IHttpClientFactory clientFactory, IConfiguration config) =>
 {
     try
     {
         var client = clientFactory.CreateClient();
-        
+
         var catalogBaseUrl = config["ReverseProxy:Clusters:catalog-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
         var bookingBaseUrl = config["ReverseProxy:Clusters:booking-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
-        
+
         if (string.IsNullOrEmpty(catalogBaseUrl) || string.IsNullOrEmpty(bookingBaseUrl))
         {
             return Results.StatusCode(500);
+        }
+
+        // Paths reservados bajo /attraction que NO son slugs sino subrutas del catálogo
+        // (algunas requieren JWT). Las proxy directamente preservando headers (especialmente
+        // Authorization, que el BFF original descartaba causando 401 en /management).
+        if (slug is "management" or "top")
+        {
+            var proxyUrl = $"{catalogBaseUrl}/api/v1/attraction/{slug}{context.Request.QueryString}";
+            using var proxyReq = new HttpRequestMessage(HttpMethod.Get, proxyUrl);
+            if (context.Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                proxyReq.Headers.TryAddWithoutValidation("Authorization", authHeader.ToString());
+            }
+            var proxyRes = await client.SendAsync(proxyReq);
+            var proxyBody = await proxyRes.Content.ReadAsStringAsync();
+            return Results.Content(proxyBody, "application/json", System.Text.Encoding.UTF8, (int)proxyRes.StatusCode);
         }
 
         // 1. Obtener Detalle de la Atracción
