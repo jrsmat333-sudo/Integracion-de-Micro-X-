@@ -115,10 +115,16 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                         {
                             var newPt = new JsonObject();
                             newPt["id"] = pt["id"]?.ToString();
-                            newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
+                            // El integrador solo mapea id, price y currencyCode. Agregar otros campos puede causar crash en su deserializador estricto.
                             newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
-                            newPt["currency"] = pt["currencyCode"]?.ToString() ?? "USD";
                             newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
+                            
+                            // También inyectamos label por si lo requieren, pero lo mantenemos simple.
+                            if (pt["label"] != null || pt["categoryName"] != null)
+                            {
+                                newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
+                            }
+                            
                             newPriceTiers.Add(newPt);
                         }
                     }
@@ -128,10 +134,12 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                     }
                 }
                 
-                // Inyectar el precio directamente en el producto por si el integrador mapea 'price' en la raíz
+                // Inyectar el precio directamente en el producto por si el integrador mapea 'price' o 'startingPrice' en la raíz
                 if (prod != null && minProductPrice != decimal.MaxValue)
                 {
                     prod["price"] = minProductPrice;
+                    prod["startingPrice"] = minProductPrice;
+                    prod["precio"] = minProductPrice;
                 }
             }
         }
@@ -394,11 +402,14 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
                         {
                             var newPt = new JsonObject();
                             newPt["id"] = pt["id"]?.ToString();
-                            newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
                             var priceToken = pt["price"];
                             newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
-                            newPt["currency"] = pt["currencyCode"]?.ToString() ?? "USD";
                             newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
+                            
+                            if (pt["label"] != null || pt["categoryName"] != null)
+                            {
+                                newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
+                            }
                             newPriceTiers.Add(newPt);
                         }
                     }
