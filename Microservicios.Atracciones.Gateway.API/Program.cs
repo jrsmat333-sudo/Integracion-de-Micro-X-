@@ -115,15 +115,9 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory c
                         {
                             var newPt = new JsonObject();
                             newPt["id"] = pt["id"]?.ToString();
-                            // El integrador solo mapea id, price y currencyCode. Agregar otros campos puede causar crash en su deserializador estricto.
+                            // El integrador solo mapea id, price y currencyCode. Agregar otros campos causa crash en su deserializador estricto.
                             newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
                             newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
-                            
-                            // También inyectamos label por si lo requieren, pero lo mantenemos simple.
-                            if (pt["label"] != null || pt["categoryName"] != null)
-                            {
-                                newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
-                            }
                             
                             newPriceTiers.Add(newPt);
                         }
@@ -406,10 +400,6 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
                             newPt["price"] = priceToken != null ? (decimal)priceToken : 0;
                             newPt["currencyCode"] = pt["currencyCode"]?.ToString() ?? "USD";
                             
-                            if (pt["label"] != null || pt["categoryName"] != null)
-                            {
-                                newPt["label"] = pt["categoryName"]?.ToString() ?? pt["label"]?.ToString() ?? "General";
-                            }
                             newPriceTiers.Add(newPt);
                         }
                     }
