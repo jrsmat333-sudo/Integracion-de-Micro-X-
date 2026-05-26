@@ -65,31 +65,48 @@ app.MapGet("/api/v1/integrations/attraction-full/{slug}", async (string slug, IH
             return Results.NotFound(new { success = false, message = "Attraction ID no encontrado en la respuesta." });
         }
 
-        // 2. Obtener Opciones de Producto (Modalidades)
-        var productOptionRes = await client.GetAsync($"{catalogBaseUrl}/api/v1/productoption/by-attraction/{attractionIdStr}");
-        JsonNode? productOptionsNode = null;
-        if (productOptionRes.IsSuccessStatusCode)
+        var sourceNode = dataNode ?? attractionNode;
+
+        // Extraer los Product IDs (Modalidades) desde el detalle (así evitamos redundancia)
+        var productIds = new List<string>();
+        var productsArray = sourceNode?["products"]?.AsArray();
+        
+        if (productsArray != null)
         {
-            var poJson = await productOptionRes.Content.ReadAsStringAsync();
-            productOptionsNode = JsonNode.Parse(poJson);
-            // Extraer del envelope 'data' si existe
-            if (productOptionsNode?["data"] != null) 
+            foreach (var prod in productsArray)
             {
-                productOptionsNode = productOptionsNode["data"];
+                var pId = prod?["id"]?.ToString();
+                if (!string.IsNullOrEmpty(pId))
+                {
+                    productIds.Add(pId);
+                }
             }
         }
 
-        // 3. Obtener Disponibilidad
-        var availabilityRes = await client.GetAsync($"{bookingBaseUrl}/api/v1/booking/disponibilidad?attractionId={attractionIdStr}");
-        JsonNode? availabilityNode = null;
-        if (availabilityRes.IsSuccessStatusCode)
+        // 2. Obtener Disponibilidad para TODAS las opciones iterando sobre sus IDs
+        var allAvailability = new JsonArray();
+        foreach (var pId in productIds)
         {
-            var avJson = await availabilityRes.Content.ReadAsStringAsync();
-            availabilityNode = JsonNode.Parse(avJson);
-            // Extraer del envelope 'data' si existe
-            if (availabilityNode?["data"] != null) 
+            var avRes = await client.GetAsync($"{bookingBaseUrl}/api/v1/booking/disponibilidad?productOptionId={pId}");
+            if (avRes.IsSuccessStatusCode)
             {
-                availabilityNode = availabilityNode["data"];
+                var avJsonStr = await avRes.Content.ReadAsStringAsync();
+                var avNode = JsonNode.Parse(avJsonStr);
+                var avDataArray = avNode?["data"]?.AsArray();
+                
+                if (avDataArray != null)
+                {
+                    foreach (var item in avDataArray)
+                    {
+                        var clonedItem = JsonNode.Parse(item!.ToJsonString());
+                        if (clonedItem != null) 
+                        {
+                            // Inyectar el productOptionId para que el frontend sepa a qué opción pertenece el horario
+                            clonedItem["productOptionId"] = pId;
+                            allAvailability.Add(clonedItem);
+                        }
+                    }
+                }
             }
         }
 
@@ -99,9 +116,8 @@ app.MapGet("/api/v1/integrations/attraction-full/{slug}", async (string slug, IH
             success = true,
             data = new
             {
-                detalle = dataNode ?? attractionNode,
-                opciones = productOptionsNode,
-                disponibilidad = availabilityNode
+                detalle = sourceNode,
+                disponibilidad = allAvailability
             }
         };
 
