@@ -24,7 +24,7 @@ app.UseCors("AllowAll");
 // -----------------------------------------------------------------------------
 // ENDPOINT AGREGADOR (BFF): Detalle + Opciones + Disponibilidad
 // -----------------------------------------------------------------------------
-app.MapGet("/api/v1/integrations/attraction-full/{slug}", async (string slug, IHttpClientFactory clientFactory, IConfiguration config) =>
+app.MapGet("/api/v1/attraction/{slug}", async (string slug, IHttpClientFactory clientFactory, IConfiguration config) =>
 {
     try
     {
@@ -110,18 +110,15 @@ app.MapGet("/api/v1/integrations/attraction-full/{slug}", async (string slug, IH
             }
         }
 
-        // Ensamblar respuesta final
-        var finalResponse = new
+        // 3. Inyectar la disponibilidad directamente en el JSON original
+        if (sourceNode is JsonObject jsonObject)
         {
-            success = true,
-            data = new
-            {
-                detalle = sourceNode,
-                disponibilidad = allAvailability
-            }
-        };
+            jsonObject["slots"] = allAvailability;
+        }
 
-        return Results.Ok(finalResponse);
+        // Retornar el JSON original (ya que sourceNode es una referencia dentro de attractionNode, 
+        // attractionNode ya contiene los slots inyectados)
+        return Results.Content(attractionNode!.ToJsonString(), "application/json");
     }
     catch (Exception ex)
     {
