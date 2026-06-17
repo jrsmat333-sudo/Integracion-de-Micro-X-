@@ -20,7 +20,12 @@ builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogSer
     // Apuntamos a la URL de Catalog.API segura (HTTPS) en la nube o local con certificado
     var catalogUrl = builder.Configuration["GrpcServices:CatalogAddress"] ?? "https://localhost:5002";
     o.Address = new Uri(catalogUrl);
-});
+})
+// Resiliencia (Polly v8 via Microsoft.Extensions.Http.Resilience):
+// la validación gRPC ValidateBookingData es idempotente (solo lee/valida), así que
+// es seguro reintentarla. El handler estándar aporta Retry (3 intentos con backoff
+// exponencial), Circuit Breaker y Timeout ante micro-cortes de red contra Catalog.
+.AddStandardResilienceHandler();
 
 builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient>(o =>
 {

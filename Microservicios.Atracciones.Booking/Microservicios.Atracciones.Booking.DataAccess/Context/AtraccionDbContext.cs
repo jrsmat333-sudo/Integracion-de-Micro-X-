@@ -43,6 +43,11 @@ public class AtraccionDbContext : DbContext
     // ══════════════════════════════════════════════════
     public DbSet<AuditLog> AuditLogs { get; set; }
 
+    // ══════════════════════════════════════════════════
+    // 5. IDEMPOTENCIA (Booking v2)
+    // ══════════════════════════════════════════════════
+    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -64,6 +69,13 @@ public class AtraccionDbContext : DbContext
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             var entityName = entity.ClrType.Name;
+
+            // IdempotencyKey mapea a una tabla creada manualmente en Supabase con nombres
+            // PascalCase exactos ("IdempotencyKeys" / "Key" / "BookingId" / ...). Saltamos la
+            // convención snake_case para no sobrescribir el mapeo de IdempotencyKeyConfiguration.
+            if (entityName == nameof(IdempotencyKey))
+                continue;
+
             if (tableMapping.TryGetValue(entityName, out var tableName))
             {
                 entity.SetTableName(tableName);

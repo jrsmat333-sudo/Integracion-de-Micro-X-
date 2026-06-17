@@ -1,4 +1,5 @@
 using Microservicios.Atracciones.Booking.DataAccess.Context;
+using Microservicios.Atracciones.Booking.DataAccess.Entities;
 using Microservicios.Atracciones.Booking.DataAccess.Repositories.Interfaces;
 
 namespace Microservicios.Atracciones.Booking.DataAccess.Repositories;
@@ -32,6 +33,9 @@ public class UnitOfWork : IUnitOfWork
 
     private IReviewMediaRepository? _reviewMedias;
     public IReviewMediaRepository ReviewMedias => _reviewMedias ??= new ReviewMediaRepository(_context);
+
+    private IGenericRepository<IdempotencyKey>? _idempotencyKeys;
+    public IGenericRepository<IdempotencyKey> IdempotencyKeys => _idempotencyKeys ??= new GenericRepository<IdempotencyKey>(_context);
 
     public async Task<int> CompleteAsync()
     {

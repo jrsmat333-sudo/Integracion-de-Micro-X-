@@ -1,0 +1,402 @@
+openapi: 3.0.3
+info:
+  title: TerraQuest Experiences - API de Booking (Integradores Externos) - V2
+  description: >
+    Contrato de integración REST para sistemas externos de booking que deseen
+    listar, consultar y reservar atracciones de TerraQuest Experiences (Versión 2).
+
+    ## Flujo típico de integración
+    1. `GET /api/v1/yanick-maila/attraction` — Obtener el catálogo de atracciones disponibles.
+    2. `GET /api/v1/yanick-maila/attraction/{slug}` — Consultar el detalle completo de una atracción.
+    3. `POST /api/v2/yanick-maila/booking` — Crear la reserva con los datos del pasajero (Idempotencia Obligatoria).
+    4. `POST /api/v1/yanick-maila/booking/{id}/cancel` — Cancelar la reserva usando su ID de reserva (GUID).
+  version: 2.0.0
+servers:
+  - url: https://129.158.203.242.nip.io
+    description: API Gateway en Producción (Oracle Cloud)
+
+paths:
+
+  /api/v1/yanick-maila/attraction:
+    get:
+      tags: [Atracciones]
+      summary: Listar atracciones
+      description: >
+        Obtiene el catálogo de atracciones activas y disponibles.
+        Soporta paginación y filtros básicos.
+      operationId: ListarAtracciones
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          description: Búsqueda por nombre o descripción
+          schema:
+            type: string
+        - name: disponible
+          in: query
+          description: Si es true, retorna solo atracciones con cupos futuros disponibles
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Catálogo obtenido con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAtraccion'
+
+  /api/v1/yanick-maila/attraction/{slug}:
+    get:
+      tags: [Atracciones]
+      summary: Detalle completo de una atracción
+      description: >
+        Devuelve la información completa de una atracción: descripción, precios,
+        modalidades disponibles, horarios/slots con capacidad y todos los
+        datos necesarios para realizar una reserva.
+      operationId: DetalleAtraccion
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug único o UUID de la atracción
+          schema:
+            type: string
+          examples:
+            porSlug:
+              value: tour-con-la-copa-del-mundo-fb4e
+            porId:
+              value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+      responses:
+        '200':
+          description: Atracción encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAtraccionDetalle'
+        '404':
+          description: Atracción no encontrada
+
+  /api/v2/yanick-maila/booking:
+    post:
+      tags: [Reservas V2]
+      summary: Crear una reserva con Idempotencia Obligatoria (V2)
+      description: >
+        Registra una reserva bloqueando el cupo en el slot seleccionado.
+        Exige mandatoriamente la cabecera 'X-Idempotency-Key' para garantizar la tolerancia a fallos.
+      operationId: CrearReservaV2
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          description: Clave única UUID de idempotencia para la transacción.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtraccionBookingRequestDto'
+      responses:
+        '200':
+          description: Reserva creada con éxito (o devuelta de caché si es duplicada)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBookingResponseDto'
+        '400':
+          description: Cabecera 'X-Idempotency-Key' ausente o datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBookingResponseDto'
+
+  /api/v1/yanick-maila/booking/{id}/cancel:
+    post:
+      tags: [Reservas]
+      summary: Cancelar una reserva
+      description: >
+        Cancela una reserva existente identificada por su ID único (GUID)
+        y libera los cupos en el inventario.
+      operationId: CancelarReserva
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la reserva (GUID) a cancelar
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reserva cancelada con éxito o error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCancelResponse'
+
+components:
+  schemas:
+
+    # CATÁLOGO — nombres en INGLÉS (consistente con el resto de microservicios).
+    AttractionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        currency:
+          type: string
+          default: USD
+        location:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        available:
+          type: boolean
+        slug:
+          type: string
+
+    AttractionDetailDto:
+      allOf:
+        - $ref: '#/components/schemas/AttractionDto'
+      type: object
+      properties:
+        products:
+          type: array
+          description: Opciones de ticket disponibles / modalidades (ej. Regular, VIP)
+          items:
+            $ref: '#/components/schemas/ProductDto'
+
+    ProductDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        slots:
+          type: array
+          description: Horarios con cupos disponibles
+          items:
+            $ref: '#/components/schemas/SlotDto'
+
+    # Disponibilidad / slots: en ESPAÑOL en ambos sistemas (coinciden).
+    SlotDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fecha:
+          type: string
+          format: date
+        horaInicio:
+          type: string
+          example: "09:00"
+        cuposDisponibles:
+          type: integer
+        capacidadTotal:
+          type: integer
+
+    ApiResponseListAtraccion:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttractionDto'
+        message:
+          type: string
+          nullable: true
+        errors:
+          type: array
+          items:
+            type: string
+
+    ApiResponseAtraccionDetalle:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/AttractionDetailDto'
+        message:
+          type: string
+          nullable: true
+
+    AtraccionBookingRequestDto:
+      type: object
+      required: [slotId]
+      properties:
+        slotId:
+          type: string
+          format: uuid
+        passengers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PassengerBookingDto'
+          nullable: true
+        tickets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketBookingDetailDto'
+          nullable: true
+        contactName:
+          type: string
+          nullable: true
+        contactEmail:
+          type: string
+          format: email
+          nullable: true
+        isPosSale:
+          type: boolean
+          default: false
+        notas:
+          type: string
+          nullable: true
+        billing:
+          $ref: '#/components/schemas/BillingInfo'
+          nullable: true
+
+    PassengerBookingDto:
+      type: object
+      properties:
+        ticketCategoryId:
+          type: string
+          format: uuid
+          nullable: true
+        priceTierId:
+          type: string
+          format: uuid
+          nullable: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        documentNumber:
+          type: string
+          nullable: true
+        documentType:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+          default: 1
+
+    TicketBookingDetailDto:
+      type: object
+      required: [ticketCategoryId, firstName, lastName, documentNumber]
+      properties:
+        ticketCategoryId:
+          type: string
+          format: uuid
+        priceTierId:
+          type: string
+          format: uuid
+          nullable: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        documentNumber:
+          type: string
+        documentType:
+          type: string
+          nullable: true
+
+    BillingInfo:
+      type: object
+      properties:
+        customerName:
+          type: string
+          nullable: true
+        taxId:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        address:
+          type: string
+          nullable: true
+
+    AtraccionBookingResponseDto:
+      type: object
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        pnrCode:
+          type: string
+        status:
+          type: string
+        totalAmount:
+          type: number
+        currency:
+          type: string
+        activityDate:
+          type: string
+          format: date-time
+        attractionName:
+          type: string
+        attractionImage:
+          type: string
+          format: uri
+          nullable: true
+        totalPassengers:
+          type: integer
+
+    ApiResponseBookingResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/AtraccionBookingResponseDto'
+        message:
+          type: string
+          nullable: true
+        errors:
+          type: array
+          items:
+            type: string
+
+    ApiResponseCancelResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: boolean
+        message:
+          type: string
+          nullable: true
+        errors:
+          type: array
+          items:
+            type: string

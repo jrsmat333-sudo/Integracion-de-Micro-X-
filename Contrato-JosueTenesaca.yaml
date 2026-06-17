@@ -1,0 +1,475 @@
+openapi: 3.0.3
+info:
+  title: Atracciones Josué Tenesaca - API de Integración (Integradores Externos) - V2
+  description: >
+    Contrato de integración REST para sistemas externos de booking que deseen
+    listar, consultar y reservar atracciones del sistema de Atracciones de
+    Josué Tenesaca.
+
+    Este contrato está diseñado para ser **compatible con el sistema gemelo**
+    (TerraQuest / atracciones-v2.yaml). La diferencia clave: este sistema se
+    identifica por **URL base propia** (su Gateway), por lo que **NO usa prefijo
+    de equipo** en las rutas (no hay `/yanick-maila/`).
+
+    ## Flujo típico de integración
+    1. `GET  /api/v1/attraction`            — Catálogo de atracciones disponibles.
+    2. `GET  /api/v1/attraction/{slug}`     — Detalle completo (products + slots).
+    3. `POST /api/v2/booking`               — Crear reserva (Idempotencia obligatoria, X-Idempotency-Key).
+    4. `POST /api/v1/booking/{id}/cancel`   — Cancelar reserva por ID (GUID).
+
+    ## Versionado
+    - **Todas las rutas se mantienen en v1**, EXCEPTO crear reserva, que pasa a **v2**
+      con idempotencia obligatoria (cabecera `X-Idempotency-Key`).
+    - La ruta **v1 de crear reserva** (`POST /api/v1/booking`) **se mantiene viva en paralelo**
+      con su comportamiento clásico (sin idempotencia) para no romper integraciones existentes.
+
+    ## Nota de compatibilidad (validada empíricamente)
+    TODOS los endpoints exponen sus campos con **nombres en inglés** (name,
+    descriptionShort, products, priceTiers, slots en la raíz). Se ha verificado
+    en producción que los sistemas integradores reales consumen y aceptan esta
+    respuesta sin problemas, por lo que **NO se aplica ninguna traducción ni
+    remapeo de propiedades en el Gateway**. El catálogo quedó consistente con el
+    resto de microservicios (todos en inglés).
+  version: 2.0.0
+
+servers:
+  - url: https://gateway-api.TU-SUBDOMINIO.centralus.azurecontainerapps.io
+    description: API Gateway en Producción (Azure Container Apps) — reemplazar por la URL real del Gateway
+
+paths:
+
+  /api/v1/attraction:
+    get:
+      tags: [Atracciones]
+      summary: Listar atracciones
+      description: >
+        Obtiene el catálogo de atracciones activas y publicadas.
+        Soporta paginación y filtros básicos.
+      operationId: ListarAtracciones
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: search
+          in: query
+          description: Búsqueda por nombre o descripción
+          schema: { type: string }
+        - name: disponible
+          in: query
+          description: Si es true, retorna solo atracciones con cupos futuros disponibles
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Catálogo obtenido con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAttraction'
+
+  /api/v1/attraction/{slug}:
+    get:
+      tags: [Atracciones]
+      summary: Detalle completo de una atracción
+      description: >
+        Devuelve la información completa de una atracción: descripción, precios,
+        modalidades (products) disponibles, horarios/slots con capacidad y todos
+        los datos necesarios para realizar una reserva.
+      operationId: DetalleAtraccion
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug único o UUID de la atracción
+          schema: { type: string }
+          examples:
+            porSlug:
+              value: tour-laguna-quilotoa-fb4e
+            porId:
+              value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+      responses:
+        '200':
+          description: Atracción encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAttractionDetail'
+        '404':
+          description: Atracción no encontrada
+
+  /api/v1/booking/disponibilidad:
+    get:
+      tags: [Disponibilidad]
+      summary: Consultar disponibilidad agrupada por día
+      description: >
+        Devuelve la disponibilidad (slots/horarios con cupos) de una atracción.
+        Puede consultarse por atracción completa o por una modalidad concreta.
+      operationId: ConsultarDisponibilidad
+      parameters:
+        - name: attractionId
+          in: query
+          description: ID (GUID) de la atracción
+          schema: { type: string, format: uuid }
+        - name: productOptionId
+          in: query
+          description: ID (GUID) de la modalidad concreta (opcional)
+          schema: { type: string, format: uuid }
+        - name: fecha
+          in: query
+          description: Filtra por una fecha concreta (yyyy-MM-dd)
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Disponibilidad obtenida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListAvailability'
+
+  /api/v2/booking:
+    post:
+      tags: [Reservas V2]
+      summary: Crear una reserva con Idempotencia Obligatoria (V2)
+      description: >
+        Registra una reserva bloqueando el cupo en el slot seleccionado.
+        Exige obligatoriamente la cabecera 'X-Idempotency-Key' para garantizar
+        tolerancia a fallos. Si la misma clave llega dos veces, se devuelve la
+        reserva ya creada (respuesta cacheada) en lugar de crear una nueva.
+      operationId: CrearReservaV2
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          description: Clave única UUID de idempotencia para la transacción.
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtraccionBookingRequestDto'
+      responses:
+        '200':
+          description: Reserva creada con éxito (o devuelta de caché si es duplicada)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBookingResponseDto'
+        '400':
+          description: Cabecera 'X-Idempotency-Key' ausente o datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBookingResponseDto'
+
+  /api/v1/booking:
+    post:
+      tags: [Reservas V1 (Legacy)]
+      summary: Crear una reserva (V1 — comportamiento clásico, sin idempotencia)
+      description: >
+        Endpoint heredado mantenido EN PARALELO para compatibilidad. No exige
+        idempotencia; si se envía dos veces, crea dos reservas. Se recomienda
+        usar `POST /api/v2/booking`.
+      operationId: CrearReservaV1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtraccionBookingRequestDto'
+      responses:
+        '200':
+          description: Reserva creada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBookingResponseDto'
+
+  /api/v1/booking/{id}/cancel:
+    post:
+      tags: [Reservas]
+      summary: Cancelar una reserva
+      description: >
+        Cancela una reserva existente identificada por su ID único (GUID)
+        y libera los cupos en el inventario.
+      operationId: CancelarReserva
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la reserva (GUID) a cancelar
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Reserva cancelada con éxito o error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCancelResponse'
+
+components:
+  schemas:
+
+    # ─────────────────────────────────────────────────────────────
+    # CATÁLOGO — nombres en INGLÉS (refleja los DTOs reales del sistema:
+    # AttractionSummaryResponse / AttractionDetailResponse / ProductResponse /
+    # PriceTierResponse). Validado empíricamente con integradores reales.
+    # ─────────────────────────────────────────────────────────────
+
+    # Item del listado (GET /api/v1/attraction) → AttractionSummaryResponse
+    AttractionSummaryDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        descriptionShort: { type: string, nullable: true }
+        locationName: { type: string }
+        locationCountryCode: { type: string }
+        ratingAverage: { type: number, format: double }
+        ratingCount: { type: integer }
+        difficultyLevel: { type: string, nullable: true }
+        imageUrl: { type: string, format: uri, nullable: true }
+        startingPrice:
+          type: number
+          format: double
+          nullable: true
+          description: Precio mínimo disponible entre las modalidades.
+        currencyCode: { type: string, default: USD }
+        isActive: { type: boolean }
+        isPublished: { type: boolean }
+        modalityCount: { type: integer, description: Número de modalidades (products). }
+
+    # Detalle (GET /api/v1/attraction/{slug}) → AttractionDetailResponse
+    # + products[] (modalidades) + slots[] inyectados por el Gateway en la raíz.
+    AttractionDetailDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        descriptionShort: { type: string, nullable: true }
+        descriptionFull: { type: string, nullable: true }
+        difficultyLevel: { type: string, nullable: true }
+        ratingAverage: { type: number, format: double }
+        ratingCount: { type: integer }
+        minAge: { type: integer, nullable: true }
+        maxGroupSize: { type: integer, nullable: true }
+        address: { type: string, nullable: true }
+        meetingPoint: { type: string, nullable: true }
+        latitude: { type: number, format: double, nullable: true }
+        longitude: { type: number, format: double, nullable: true }
+        imageUrl: { type: string, format: uri, nullable: true }
+        locationId: { type: string, format: uuid }
+        locationName: { type: string }
+        locationCountryCode: { type: string }
+        startingPrice:
+          type: number
+          format: double
+          description: Precio mínimo inyectado por el Gateway (NormalizePrice).
+        products:
+          type: array
+          description: Modalidades de la atracción (ProductOption).
+          items:
+            $ref: '#/components/schemas/ProductDto'
+        slots:
+          type: array
+          description: >
+            Disponibilidad inyectada por el Gateway en la raíz (desde
+            /api/v1/booking/disponibilidad). Cada elemento agrupa un día,
+            con su productOptionId.
+          items:
+            $ref: '#/components/schemas/AvailabilityDayDto'
+
+    # Modalidad → ProductResponse
+    ProductDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        durationMinutes: { type: integer, nullable: true }
+        durationDescription: { type: string, nullable: true }
+        cancelPolicyHours: { type: integer }
+        cancelPolicyText: { type: string, nullable: true }
+        maxGroupSize: { type: integer, nullable: true }
+        minParticipants: { type: integer }
+        isPrivate: { type: boolean }
+        priceTiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceTierDto'
+
+    # Tarifa → PriceTierResponse
+    PriceTierDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        ticketCategoryId: { type: string, format: uuid }
+        categoryName: { type: string }
+        price: { type: number, format: double }
+        currencyCode: { type: string, default: USD }
+
+    # ─────────────────────────────────────────────────────────────
+    # DISPONIBILIDAD (dominio Booking — DisponibilidadDiariaDto / HorarioDto).
+    # Estos campos provienen del microservicio de Booking y NO forman parte del
+    # cambio de Catalog; conservan su nomenclatura actual.
+    # ─────────────────────────────────────────────────────────────
+    AvailabilityDayDto:
+      type: object
+      properties:
+        fecha: { type: string, format: date }
+        cuposDisponibles: { type: integer }
+        productOptionId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Inyectado por el Gateway cuando los slots van en la raíz del detalle.
+        horarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/HorarioDto'
+
+    HorarioDto:
+      type: object
+      properties:
+        slotId: { type: string, format: uuid }
+        horaInicio: { type: string, example: "09:00" }
+        horaFin: { type: string, nullable: true, example: "11:00" }
+        cuposDisponibles: { type: integer }
+        cuposTotales: { type: integer }
+
+    # ─────────────────────────────────────────────────────────────
+    # RESERVAS (ya coinciden 1:1 con tus DTOs actuales — sin cambios)
+    # ─────────────────────────────────────────────────────────────
+    AtraccionBookingRequestDto:
+      type: object
+      required: [slotId]
+      properties:
+        slotId: { type: string, format: uuid }
+        passengers:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/PassengerBookingDto'
+        tickets:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/TicketBookingDetailDto'
+        attractionId: { type: string, format: uuid }
+        productOptionId: { type: string, format: uuid }
+        contactName: { type: string, nullable: true }
+        contactEmail: { type: string, format: email, nullable: true }
+        isPosSale: { type: boolean, default: false }
+        notas: { type: string, nullable: true }
+        billing:
+          $ref: '#/components/schemas/BillingInfo'
+          nullable: true
+
+    PassengerBookingDto:
+      type: object
+      properties:
+        ticketCategoryId: { type: string, format: uuid, nullable: true }
+        priceTierId: { type: string, format: uuid, nullable: true }
+        firstName: { type: string }
+        lastName: { type: string }
+        documentNumber: { type: string, nullable: true }
+        documentType: { type: string, nullable: true }
+        quantity: { type: integer, default: 1 }
+
+    TicketBookingDetailDto:
+      type: object
+      required: [ticketCategoryId, firstName, lastName, documentNumber]
+      properties:
+        ticketCategoryId: { type: string, format: uuid }
+        priceTierId: { type: string, format: uuid, nullable: true }
+        firstName: { type: string }
+        lastName: { type: string }
+        documentNumber: { type: string }
+        documentType: { type: string, nullable: true }
+
+    BillingInfo:
+      type: object
+      properties:
+        customerName: { type: string, nullable: true }
+        taxId: { type: string, nullable: true, description: "RUC / Cédula" }
+        email: { type: string, format: email, nullable: true }
+        address: { type: string, nullable: true }
+
+    AtraccionBookingResponseDto:
+      type: object
+      properties:
+        bookingId: { type: string, format: uuid }
+        pnrCode: { type: string }
+        status: { type: string }
+        totalAmount: { type: number }
+        currency: { type: string }
+        activityDate: { type: string, format: date-time }
+        attractionName: { type: string }
+        attractionImage: { type: string, format: uri, nullable: true }
+        totalPassengers: { type: integer }
+
+    # ─────────────────────────────────────────────────────────────
+    # WRAPPERS DE RESPUESTA (idénticos a tu ApiResponse<T>)
+    # ─────────────────────────────────────────────────────────────
+    ApiResponseListAttraction:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttractionSummaryDto'
+        message: { type: string, nullable: true }
+        errors:
+          type: array
+          items: { type: string }
+
+    ApiResponseAttractionDetail:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          $ref: '#/components/schemas/AttractionDetailDto'
+        message: { type: string, nullable: true }
+        errors:
+          type: array
+          items: { type: string }
+
+    ApiResponseListAvailability:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityDayDto'
+        message: { type: string, nullable: true }
+        errors:
+          type: array
+          items: { type: string }
+
+    ApiResponseBookingResponseDto:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          $ref: '#/components/schemas/AtraccionBookingResponseDto'
+        message: { type: string, nullable: true }
+        errors:
+          type: array
+          items: { type: string }
+
+    ApiResponseCancelResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        data: { type: boolean }
+        message: { type: string, nullable: true }
+        errors:
+          type: array
+          items: { type: string }

@@ -5,6 +5,7 @@ using Microservicios.Atracciones.Booking.Business.DTOs.Booking;
 using Microservicios.Atracciones.Booking.Business.Interfaces;
 using Microservicios.Atracciones.Booking.DataAccess.Repositories.Interfaces;
 using Microservicios.Atracciones.Booking.DataManagement.Interfaces;
+using System.Text.Json;
 
 namespace Microservicios.Atracciones.Booking.Business.Services;
 
@@ -20,6 +21,10 @@ public class BookingIntegrationService : IBookingIntegrationService
     private readonly ILogger<BookingIntegrationService> _logger;
     private readonly Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient _catalogClient;
     private readonly Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient _billingClient;
+
+    // Opciones de (de)serialización del cuerpo cacheado para idempotencia. Case-insensitive
+    // para que el round-trip JSON funcione sin importar el casing en el que se guardó.
+    private static readonly JsonSerializerOptions _idempotencyJson = new() { PropertyNameCaseInsensitive = true };
 
     public BookingIntegrationService(
         IInventoryDataService inventoryData,
@@ -86,7 +91,7 @@ public class BookingIntegrationService : IBookingIntegrationService
     // TRANSACCIONES: CREAR RESERVA
     // ══════════════════════════════════════════════════
 
-    public async Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaAsync(AtraccionBookingRequestDto request, Guid? userId)
+    public async Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaAsync(AtraccionBookingRequestDto request, Guid? userId, string? idempotencyKey = null)
     {
         // Resolver userId: si no hay JWT, generar un UUID como usuario invitado
         var resolvedUserId = userId ?? Guid.NewGuid();
@@ -202,6 +207,34 @@ public class BookingIntegrationService : IBookingIntegrationService
             slot.CapacityAvailable -= (short)totalTickets;
             slot.UpdatedAt = DateTime.UtcNow;
 
+            // Construimos la respuesta ANTES de confirmar para poder persistirla junto con la
+            // reserva cuando la operación es idempotente (v2), garantizando consistencia.
+            var response = ApiResponse<AtraccionBookingResponseDto>.Ok(new AtraccionBookingResponseDto
+            {
+                BookingId = booking.Id,
+                PnrCode = booking.PnrCode,
+                Status = "Confirmed",
+                TotalAmount = totalAmount,
+                Currency = booking.CurrencyCode,
+                ActivityDate = slot.SlotDate.ToDateTime(slot.StartTime),
+                AttractionName = request.AttractionName ?? "Attraction"
+            }, "Reserva creada exitosamente.");
+
+            // Idempotencia (v2): guardamos la clave + la respuesta serializada en la MISMA
+            // transacción que la reserva. Si dos peticiones concurrentes usan la misma clave,
+            // la PK única hace que la segunda falle al confirmar y se revierta TODA la
+            // transacción (no se crea una reserva huérfana).
+            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                await _uow.IdempotencyKeys.AddAsync(new DataAccess.Entities.IdempotencyKey
+                {
+                    Key = idempotencyKey,
+                    BookingId = booking.Id,
+                    ResponseJson = JsonSerializer.Serialize(response, _idempotencyJson),
+                    CreatedAtUtc = DateTime.UtcNow
+                });
+            }
+
             await _uow.CompleteAsync();
 
             // Llamada gRPC a Billing para crear la factura automáticamente.
@@ -219,22 +252,44 @@ public class BookingIntegrationService : IBookingIntegrationService
                 }
             });
 
-            return ApiResponse<AtraccionBookingResponseDto>.Ok(new AtraccionBookingResponseDto
-            {
-                BookingId = booking.Id,
-                PnrCode = booking.PnrCode,
-                Status = "Confirmed",
-                TotalAmount = totalAmount,
-                Currency = booking.CurrencyCode,
-                ActivityDate = slot.SlotDate.ToDateTime(slot.StartTime),
-                AttractionName = request.AttractionName ?? "Attraction"
-            }, "Reserva creada exitosamente.");
+            return response;
         }
         catch (Exception ex)
         {
             var errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
             return ApiResponse<AtraccionBookingResponseDto>.Fail("Error interno al procesar la reserva: " + errorMsg);
         }
+    }
+
+    // ══════════════════════════════════════════════════
+    // TRANSACCIONES: CREAR RESERVA IDEMPOTENTE (v2)
+    // ══════════════════════════════════════════════════
+
+    public async Task<ApiResponse<AtraccionBookingResponseDto>> CrearReservaIdempotenteAsync(
+        AtraccionBookingRequestDto request, Guid? userId, string idempotencyKey)
+    {
+        // 1. ¿La clave ya fue procesada? → devolvemos la respuesta cacheada tal cual,
+        //    sin crear otra reserva.
+        var existing = await _uow.IdempotencyKeys.Query()
+            .FirstOrDefaultAsync(k => k.Key == idempotencyKey);
+
+        if (existing != null)
+        {
+            var cached = JsonSerializer.Deserialize<ApiResponse<AtraccionBookingResponseDto>>(
+                existing.ResponseJson, _idempotencyJson);
+
+            if (cached != null)
+                return cached;
+
+            // Defensa: si el JSON cacheado no se puede deserializar, devolvemos al menos el BookingId.
+            return ApiResponse<AtraccionBookingResponseDto>.Ok(
+                new AtraccionBookingResponseDto { BookingId = existing.BookingId, Status = "Confirmed" },
+                "Reserva ya procesada (idempotente).");
+        }
+
+        // 2. Primera vez para esta clave → flujo normal, pasando la clave para que se
+        //    persista en la misma transacción que la reserva.
+        return await CrearReservaAsync(request, userId, idempotencyKey);
     }
 
     public async Task<ApiResponse<bool>> CancelarReservaAsync(Guid bookingId, Guid? userId = null)

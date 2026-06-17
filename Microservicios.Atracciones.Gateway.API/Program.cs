@@ -10,6 +10,13 @@ builder.Services.AddReverseProxy()
 // Configurar HttpClient para llamadas internas (BFF)
 builder.Services.AddHttpClient();
 
+// Cliente HTTP resiliente para las llamadas GET de los BFF (lecturas a Catalog/Booking).
+// Aporta Retry (3 intentos con backoff exponencial) + Timeout + Circuit Breaker ante
+// micro-cortes de red. SOLO se aplica a los GET (idempotentes); el POST de reservas v1
+// usa el cliente normal para evitar reservas duplicadas si un reintento se dispara.
+builder.Services.AddHttpClient("resilient")
+    .AddStandardResilienceHandler();
+
 // Configurar CORS general para el Gateway
 builder.Services.AddCors(options =>
 {
@@ -28,7 +35,7 @@ app.MapGet("/api/v1/attraction/{slug}", async (string slug, HttpContext context,
 {
     try
     {
-        var client = clientFactory.CreateClient();
+        var client = clientFactory.CreateClient("resilient");
 
         var catalogBaseUrl = config["ReverseProxy:Clusters:catalog-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
         var bookingBaseUrl = config["ReverseProxy:Clusters:booking-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
@@ -248,7 +255,7 @@ app.MapGet("/api/v1/booking/disponibilidad", async (Guid? attractionId, Guid? pr
 {
     try
     {
-        var client = clientFactory.CreateClient();
+        var client = clientFactory.CreateClient("resilient");
         var bookingBaseUrl = config["ReverseProxy:Clusters:booking-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
         var catalogBaseUrl = config["ReverseProxy:Clusters:catalog-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
 
@@ -422,7 +429,7 @@ app.MapGet("/api/v1/productoption/by-attraction/{attractionId}", async (Guid att
 {
     try
     {
-        var client = clientFactory.CreateClient();
+        var client = clientFactory.CreateClient("resilient");
         var catalogBaseUrl = config["ReverseProxy:Clusters:catalog-cluster:Destinations:destination1:Address"]?.TrimEnd('/');
 
         if (string.IsNullOrEmpty(catalogBaseUrl))
