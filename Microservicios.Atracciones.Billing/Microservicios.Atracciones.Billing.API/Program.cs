@@ -5,6 +5,8 @@ using Microservicios.Atracciones.Billing.DataAccess;
 using Microsoft.OpenApi.Models;
 using Microservicios.Atracciones.Billing.Business;
 using Microservicios.Atracciones.Billing.DataManagement;
+using Microservicios.Atracciones.Billing.API.Consumers;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +20,24 @@ builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddBusinessServices();
 builder.Services.AddDataManagementServices();
 
-// 2. CONFIGURACIÓN API & CORS
-builder.Services.AddGrpc();
+// 2. EVENT BUS (MassTransit + RabbitMQ / CloudAMQP)
+// Billing es CONSUMER: escucha BookingCreatedEvent y genera la factura de forma asíncrona
+// (reemplaza el antiguo servidor gRPC). UseMessageRetry da reintentos; los fallos
+// persistentes van a la cola _error (DLQ automática de MassTransit).
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<BookingCreatedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitConnection = builder.Configuration["RabbitMq:ConnectionString"]
+            ?? throw new InvalidOperationException("Falta la configuración RabbitMq:ConnectionString.");
+        cfg.Host(new Uri(rabbitConnection));
+
+        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -101,7 +119,6 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGrpcService<Microservicios.Atracciones.Billing.API.GrpcServices.BillingGrpcService>();
 app.MapControllers();
 
 app.Run();

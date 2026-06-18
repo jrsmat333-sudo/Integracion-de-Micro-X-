@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!--
+    Librería compartida de CONTRATOS de eventos (Event Bus / MassTransit).
+    Son POCOs (records) sin lógica ni dependencias. La referencian Booking (publisher),
+    Billing (consumer) y, en Fase 3, Gateway (consumer). El identificador de tipo
+    (namespace + nombre) debe ser IDÉNTICO en todos para que MassTransit enrute bien.
+  -->
+
+</Project>

@@ -1,4 +1,5 @@
 using Microservicios.Atracciones.Billing.DataAccess.Context;
+using Microservicios.Atracciones.Billing.DataAccess.Entities;
 using Microservicios.Atracciones.Billing.DataAccess.Repositories.Interfaces;
 
 namespace Microservicios.Atracciones.Billing.DataAccess.Repositories;
@@ -20,6 +21,9 @@ public class UnitOfWork : IUnitOfWork
 
     private IInvoiceDetailRepository? _invoiceDetails;
     public IInvoiceDetailRepository InvoiceDetails => _invoiceDetails ??= new InvoiceDetailRepository(_context);
+
+    private IGenericRepository<ProcessedEvent>? _processedEvents;
+    public IGenericRepository<ProcessedEvent> ProcessedEvents => _processedEvents ??= new GenericRepository<ProcessedEvent>(_context);
 
     public async Task<int> CompleteAsync()
     {

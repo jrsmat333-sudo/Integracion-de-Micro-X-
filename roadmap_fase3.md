@@ -153,15 +153,22 @@ Pruebas manuales (Postman / `.http`):
 
 ## 2.3. Billing = Consumer (con idempotencia de mensajería)
 - **Instalar** en Billing.API: `MassTransit` + `MassTransit.RabbitMQ`.
+
 - **Consumer nuevo** `BookingCreatedConsumer : IConsumer<BookingCreatedEvent>`:
   - Idempotencia: tabla `ProcessedEvents` (guardar `MessageId`; si ya existe → ignorar). EF migration en DB Billing.
+
   - Llamar al **`IBillingService.CrearFacturaAsync` que YA EXISTE** (reutilizas la lógica; solo cambia el disparador).
+
   - **Reintentos + DLQ**: configurar en MassTransit `UseMessageRetry` (ej. 3 intentos) y que los fallos persistentes vayan a `_error`/_skipped (DLQ automática de MassTransit).
+
 - **Eliminar** el `BillingGrpcService` (`Billing.API/GrpcServices/BillingGrpcService.cs`) y su mapeo en `Program.cs`. (Q6)
+
 - **Limpieza:** quitar de `Shared.gRPC/Protos/billing.proto` el servicio (o dejar el archivo pero sin registrar el servidor). El gRPC de **Catalog** (`catalog.proto`) **se queda** (Fase 1 lo protege con Polly).
 
 ## 2.4. (Después) Billing publica confirmación → preparar Fase 3
 - Cuando Billing termina la factura, **publica** `PaymentApprovedEvent(BookingId, CorrelationId, ...)`. Esto lo consumirá el Gateway en Fase 3 para avisar al móvil. (Si prefieres, esta publicación se añade al inicio de Fase 3.)
+
+
 
 ## ✅ VALIDACIÓN FASE 2
 - [ ] En el panel de **CloudAMQP** ver el exchange/cola creados por MassTransit y los mensajes pasando.

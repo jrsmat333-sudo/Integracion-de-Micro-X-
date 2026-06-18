@@ -6,6 +6,7 @@ on:
     paths:
       - 'Microservicios.Atracciones.Booking/**'
       - 'Microservicios.Atracciones.Shared.gRPC/**'
+      - 'Microservicios.Atracciones.Shared.Contracts/**'
       - '.github/workflows/build-booking.yml'
   workflow_dispatch:
 

@@ -7,9 +7,7 @@ info:
     Josué Tenesaca.
 
     Este contrato está diseñado para ser **compatible con el sistema gemelo**
-    (TerraQuest / atracciones-v2.yaml). La diferencia clave: este sistema se
-    identifica por **URL base propia** (su Gateway), por lo que **NO usa prefijo
-    de equipo** en las rutas (no hay `/yanick-maila/`).
+    (TerraQuest / atracciones-v2.yaml).
 
     ## Flujo típico de integración
     1. `GET  /api/v1/attraction`            — Catálogo de atracciones disponibles.
@@ -30,10 +28,11 @@ info:
     respuesta sin problemas, por lo que **NO se aplica ninguna traducción ni
     remapeo de propiedades en el Gateway**. El catálogo quedó consistente con el
     resto de microservicios (todos en inglés).
+
   version: 2.0.0
 
 servers:
-  - url: https://gateway-api.TU-SUBDOMINIO.centralus.azurecontainerapps.io
+  - url: https://gateway-service.ashysea-53177507.centralus.azurecontainerapps.io
     description: API Gateway en Producción (Azure Container Apps) — reemplazar por la URL real del Gateway
 
 paths:

@@ -21,6 +21,9 @@ public class BillingDbContext : DbContext
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<InvoiceDetail> InvoiceDetails { get; set; }
 
+    // Idempotencia de mensajería (Event Bus / MassTransit)
+    public DbSet<ProcessedEvent> ProcessedEvents { get; set; }
+
     // ══════════════════════════════════════════════════
     // MODEL CREATING
     // ══════════════════════════════════════════════════
@@ -36,7 +39,8 @@ public class BillingDbContext : DbContext
             { nameof(PaymentMethodType), "payment_method_type" },
             { nameof(PaymentStatusType), "payment_status_type" },
             { nameof(Invoice), "invoice" },
-            { nameof(InvoiceDetail), "invoice_detail" }
+            { nameof(InvoiceDetail), "invoice_detail" },
+            { nameof(ProcessedEvent), "processed_events" }
         };
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())

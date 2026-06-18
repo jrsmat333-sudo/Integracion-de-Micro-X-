@@ -4,8 +4,9 @@ using System.Text;
 using Microservicios.Atracciones.Booking.DataAccess;       
 using Microservicios.Atracciones.Booking.DataManagement;   
 using Microservicios.Atracciones.Booking.Business;         
-using Microservicios.Atracciones.Booking.API.Middleware;   
+using Microservicios.Atracciones.Booking.API.Middleware;
 using Microsoft.OpenApi.Models;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,12 +28,19 @@ builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogSer
 // exponencial), Circuit Breaker y Timeout ante micro-cortes de red contra Catalog.
 .AddStandardResilienceHandler();
 
-builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient>(o =>
+// ── Event Bus (MassTransit + RabbitMQ / CloudAMQP) ──
+// Booking es PUBLISHER: al crear una reserva publica BookingCreatedEvent y Billing lo
+// consume de forma asíncrona (reemplaza la antigua llamada gRPC síncrona a Billing).
+// La conexión sale de RabbitMq:ConnectionString (env var RabbitMq__ConnectionString en Azure).
+builder.Services.AddMassTransit(x =>
 {
-    var billingUrl = builder.Configuration["GrpcServices:BillingAddress"]
-        ?? builder.Configuration["GrpcServices:BillingUrl"]  // legacy key fallback
-        ?? "http://localhost:7052";
-    o.Address = new Uri(billingUrl);
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitConnection = builder.Configuration["RabbitMq:ConnectionString"]
+            ?? throw new InvalidOperationException("Falta la configuración RabbitMq:ConnectionString.");
+        cfg.Host(new Uri(rabbitConnection));
+        cfg.ConfigureEndpoints(context);
+    });
 });
 
 builder.Services.AddControllers(options => 

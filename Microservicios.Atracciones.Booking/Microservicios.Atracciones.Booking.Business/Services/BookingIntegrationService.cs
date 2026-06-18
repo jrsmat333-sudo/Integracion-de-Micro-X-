@@ -5,6 +5,8 @@ using Microservicios.Atracciones.Booking.Business.DTOs.Booking;
 using Microservicios.Atracciones.Booking.Business.Interfaces;
 using Microservicios.Atracciones.Booking.DataAccess.Repositories.Interfaces;
 using Microservicios.Atracciones.Booking.DataManagement.Interfaces;
+using Microservicios.Atracciones.Shared.Contracts.Events;
+using MassTransit;
 using System.Text.Json;
 
 namespace Microservicios.Atracciones.Booking.Business.Services;
@@ -20,7 +22,7 @@ public class BookingIntegrationService : IBookingIntegrationService
     private readonly IConfiguration _configuration;
     private readonly ILogger<BookingIntegrationService> _logger;
     private readonly Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient _catalogClient;
-    private readonly Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient _billingClient;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     // Opciones de (de)serialización del cuerpo cacheado para idempotencia. Case-insensitive
     // para que el round-trip JSON funcione sin importar el casing en el que se guardó.
@@ -32,14 +34,14 @@ public class BookingIntegrationService : IBookingIntegrationService
         IConfiguration configuration,
         ILogger<BookingIntegrationService> logger,
         Microservicios.Atracciones.Shared.gRPC.CatalogService.CatalogServiceClient catalogClient,
-        Microservicios.Atracciones.Shared.gRPC.BillingService.BillingServiceClient billingClient)
+        IPublishEndpoint publishEndpoint)
     {
         _inventoryData = inventoryData;
         _uow = uow;
         _configuration = configuration;
         _logger = logger;
         _catalogClient = catalogClient;
-        _billingClient = billingClient;
+        _publishEndpoint = publishEndpoint;
     }
 
     // ══════════════════════════════════════════════════
@@ -237,20 +239,42 @@ public class BookingIntegrationService : IBookingIntegrationService
 
             await _uow.CompleteAsync();
 
-            // Llamada gRPC a Billing para crear la factura automáticamente.
-            // Si falla, no se revierte la reserva; puede crearse manualmente por admin.
-            _ = Task.Run(async () =>
+            // Event Bus: publicamos BookingCreatedEvent para que Billing genere la factura
+            // de forma ASÍNCRONA (reemplaza la antigua llamada gRPC síncrona). La reserva ya
+            // está confirmada; si el broker fallara, solo registramos el error sin tumbar la
+            // reserva (la factura podrá regenerarse). El CorrelationId reutiliza la clave de
+            // idempotencia (o el BookingId en el flujo v1 legacy) para el aviso SignalR (Fase 3).
+            try
             {
-                try
-                {
-                    await CrearFacturaAsync(booking, details, request.Billing, resolvedUserId, currency, taxRate);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "gRPC billing failed for BookingId {BookingId}. BillingUrl={BillingUrl}",
-                        booking.Id, _configuration["GrpcServices:BillingUrl"]);
-                }
-            });
+                var correlationId = string.IsNullOrWhiteSpace(idempotencyKey)
+                    ? booking.Id.ToString()
+                    : idempotencyKey;
+
+                decimal taxRatePercent = taxRate * 100;
+
+                await _publishEndpoint.Publish(new BookingCreatedEvent(
+                    booking.Id,
+                    resolvedUserId,
+                    correlationId,
+                    currency,
+                    booking.TotalAmount,
+                    taxRatePercent,
+                    new BillingInfoDto(
+                        request.Billing?.CustomerName,
+                        request.Billing?.TaxId,
+                        request.Billing?.Email,
+                        request.Billing?.Address),
+                    details.Select(d => new InvoiceLineDto(
+                        $"{d.TierNameSnapshot} - {d.AttractionNameSnapshot}",
+                        d.Quantity,
+                        d.UnitPrice,
+                        taxRatePercent)).ToList(),
+                    DateTime.UtcNow));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "No se pudo publicar BookingCreatedEvent para BookingId {BookingId}", booking.Id);
+            }
 
             return response;
         }
@@ -343,48 +367,6 @@ public class BookingIntegrationService : IBookingIntegrationService
         }).ToList();
 
         return ApiResponse<List<AtraccionBookingResponseDto>>.Ok(dtos);
-    }
-
-    // ══════════════════════════════════════════════════
-    // INTEGRACIÓN GRPC: CREAR FACTURA EN BILLING
-    // ══════════════════════════════════════════════════
-
-    private async Task CrearFacturaAsync(
-        DataAccess.Entities.Booking booking,
-        List<DataAccess.Entities.BookingDetail> details,
-        BillingInfo? billingInfo,
-        Guid userId,
-        string currency,
-        decimal taxRate)
-    {
-        try
-        {
-            var grpcInvoice = new Microservicios.Atracciones.Shared.gRPC.CreateInvoiceGrpcRequest
-            {
-                BookingId = booking.Id.ToString(),
-                UserId = userId.ToString(),
-                CustomerName = billingInfo?.CustomerName ?? "Invitado",
-                TaxId = billingInfo?.TaxId ?? string.Empty,
-                Email = billingInfo?.Email ?? string.Empty,
-                Address = billingInfo?.Address ?? string.Empty,
-                CurrencyCode = currency
-            };
-
-            decimal taxRatePercent = taxRate * 100;
-            grpcInvoice.Items.AddRange(details.Select(d => new Microservicios.Atracciones.Shared.gRPC.InvoiceItemGrpc
-            {
-                Description = $"{d.TierNameSnapshot} - {d.AttractionNameSnapshot}",
-                Quantity = d.Quantity,
-                UnitPrice = (double)d.UnitPrice,
-                TaxRate = (double)taxRatePercent
-            }));
-
-            await _billingClient.CreateInvoiceAsync(grpcInvoice);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "CrearFacturaAsync inner error for BookingId {BookingId}", booking.Id);
-        }
     }
 
     private string GeneratePnrCode()

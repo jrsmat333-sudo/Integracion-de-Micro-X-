@@ -11,7 +11,7 @@ COPY ["Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.API
 COPY ["Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.Business/Microservicios.Atracciones.Billing.Business.csproj", "Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.Business/"]
 COPY ["Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.DataAccess/Microservicios.Atracciones.Billing.DataAccess.csproj", "Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.DataAccess/"]
 COPY ["Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.DataManagement/Microservicios.Atracciones.Billing.DataManagement.csproj", "Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.DataManagement/"]
-COPY ["Microservicios.Atracciones.Shared.gRPC/Microservicios.Atracciones.Shared.gRPC.csproj", "Microservicios.Atracciones.Shared.gRPC/"]
+COPY ["Microservicios.Atracciones.Shared.Contracts/Microservicios.Atracciones.Shared.Contracts.csproj", "Microservicios.Atracciones.Shared.Contracts/"]
 
 # Restaurar dependencias
 RUN dotnet restore "Microservicios.Atracciones.Billing/Microservicios.Atracciones.Billing.API/Microservicios.Atracciones.Billing.API.csproj"

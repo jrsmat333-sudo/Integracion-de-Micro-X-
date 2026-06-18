@@ -11,6 +11,7 @@ COPY ["Microservicios.Atracciones.Booking/Microservicios.Atracciones.Booking.Bus
 COPY ["Microservicios.Atracciones.Booking/Microservicios.Atracciones.Booking.DataAccess/Microservicios.Atracciones.Booking.DataAccess.csproj", "Microservicios.Atracciones.Booking/Microservicios.Atracciones.Booking.DataAccess/"]
 COPY ["Microservicios.Atracciones.Booking/Microservicios.Atracciones.Booking.DataManagement/Microservicios.Atracciones.Booking.DataManagement.csproj", "Microservicios.Atracciones.Booking/Microservicios.Atracciones.Booking.DataManagement/"]
 COPY ["Microservicios.Atracciones.Shared.gRPC/Microservicios.Atracciones.Shared.gRPC.csproj", "Microservicios.Atracciones.Shared.gRPC/"]
+COPY ["Microservicios.Atracciones.Shared.Contracts/Microservicios.Atracciones.Shared.Contracts.csproj", "Microservicios.Atracciones.Shared.Contracts/"]
 
 # Restaurar dependencias
 RUN dotnet restore "Microservicios.Atracciones.Booking/Microservicios.Atracciones.Booking.API/Microservicios.Atracciones.Booking.API.csproj"

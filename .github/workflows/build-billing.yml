@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'Microservicios.Atracciones.Billing/**'
+      - 'Microservicios.Atracciones.Shared.Contracts/**'
       - '.github/workflows/build-billing.yml'
   workflow_dispatch:
 

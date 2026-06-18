@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="MassTransit.Abstractions" Version="8.5.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
     <PackageReference Include="QuestPDF" Version="2026.3.1" />
   </ItemGroup>
@@ -20,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microservicios.Atracciones.Booking.DataManagement\Microservicios.Atracciones.Booking.DataManagement.csproj" />
     <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.gRPC\Microservicios.Atracciones.Shared.gRPC.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.Contracts\Microservicios.Atracciones.Shared.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
