@@ -11,11 +11,13 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="MassTransit" Version="8.5.10" />
     <PackageReference Include="QuestPDF" Version="2026.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microservicios.Atracciones.Billing.DataAccess\Microservicios.Atracciones.Billing.DataAccess.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.Contracts\Microservicios.Atracciones.Shared.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
