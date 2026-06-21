@@ -208,7 +208,7 @@ public class BookingService : IBookingService
     {
         Id = b.Id,
         PnrCode = b.PnrCode,
-        StatusName = b.StatusName,
+        StatusName = string.IsNullOrEmpty(b.StatusName) ? GetStatusName(b.StatusId) : b.StatusName,
         TotalAmount = b.TotalAmount,
         CurrencyCode = b.CurrencyCode,
         Notes = b.Notes,
@@ -227,12 +227,22 @@ public class BookingService : IBookingService
         CanReview = CalculateCanReview(b)
     };
 
+    private static string GetStatusName(short statusId) => statusId switch
+    {
+        1 => "Pending",
+        2 => "Confirmed",
+        3 => "Completed",
+        4 => "Cancelled",
+        5 => "NoShow",
+        _ => "Unknown"
+    };
+
     private static BookingSummaryResponse MapToSummary(BookingNode b) => new()
     {
         Id = b.Id,
         PnrCode = b.PnrCode,
         AttractionName = b.AttractionName,
-        StatusName = b.StatusName,
+        StatusName = string.IsNullOrEmpty(b.StatusName) ? GetStatusName(b.StatusId) : b.StatusName,
         StatusId = b.StatusId,
         TotalAmount = b.TotalAmount,
         CurrencyCode = b.CurrencyCode,

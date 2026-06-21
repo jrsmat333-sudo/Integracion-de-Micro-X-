@@ -249,11 +249,11 @@ export default function ProfileScreen() {
             <View key={idx} style={styles.invoiceCard}>
               <View style={styles.invoiceRow}>
                 <Text style={styles.invoiceNumber}>#{inv.invoiceNumber}</Text>
-                <Text style={styles.invoiceDate}>{new Date(inv.issuedAt).toLocaleDateString()}</Text>
+                <Text style={styles.invoiceDate}>{new Date(inv.createdAt || inv.issuedAt).toLocaleDateString()}</Text>
               </View>
               <Text style={styles.invoiceCustomer}>{inv.customerName}</Text>
               <View style={styles.invoiceFooter}>
-                <Text style={styles.invoiceTotal}>${inv.totalAmount.toFixed(2)} {inv.currency}</Text>
+                <Text style={styles.invoiceTotal}>${(inv.total || inv.totalAmount || 0).toFixed(2)} {inv.currency}</Text>
                 <TouchableOpacity style={styles.pdfBtn} onPress={() => generateInvoicePDF(inv)}>
                   <Ionicons name="document-text-outline" size={16} color={colors.forest} />
                   <Text style={styles.pdfBtnText}>Ver PDF</Text>

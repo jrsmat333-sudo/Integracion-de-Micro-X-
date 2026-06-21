@@ -56,10 +56,10 @@ export default function PaymentScreen() {
     try {
       const extId = `TXN-${Date.now()}`;
       const payload = {
-        bookingId: booking.bookingId,
+        bookingId: booking.id || booking.bookingId,
         paymentMethodId: 1, // 1=TC
         amount: booking.totalAmount,
-        currencyCode: booking.currency,
+        currencyCode: booking.currencyCode || booking.currency,
         transactionExternalId: extId,
         statusId: 1 // Pending
       };

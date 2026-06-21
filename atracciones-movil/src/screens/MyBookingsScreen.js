@@ -28,7 +28,9 @@ export default function MyBookingsScreen() {
     setLoading(true);
     try {
       const res = await getMisReservas();
-      setBookings(res?.data || res || []);
+      // Backend returns ApiResponse<List<AtraccionBookingResponseDto>>: { success, data: [...] }
+      const items = res?.data || res || [];
+      setBookings(Array.isArray(items) ? items : []);
     } catch (err) {
       console.log('Error fetching bookings', err);
     } finally {
@@ -60,22 +62,33 @@ export default function MyBookingsScreen() {
 
   const handleContinuePayment = (item) => {
     const idempotencyKey = Crypto.randomUUID();
-    navigation.navigate('Payment', { booking: item, idempotencyKey });
+    // Normalize field names for PaymentScreen compatibility
+    const bookingForPayment = {
+      ...item,
+      id: item.bookingId,
+      currencyCode: item.currency,
+    };
+    navigation.navigate('Payment', { booking: bookingForPayment, idempotencyKey });
   };
 
-  const getStatusStyles = (status) => {
-    switch (status) {
+  const getStatusStyles = (statusStr) => {
+    switch (statusStr) {
       case 'Pending': return { backgroundColor: '#FEF3C7', color: '#92400E', text: 'Pendiente' };
       case 'Confirmed': return { backgroundColor: '#D1FAE5', color: '#065F46', text: 'Confirmada' };
       case 'Completed': return { backgroundColor: '#DBEAFE', color: '#1E40AF', text: 'Completada' };
       case 'Cancelled': return { backgroundColor: '#FEE2E2', color: '#991B1B', text: 'Cancelada' };
-      default: return { backgroundColor: colors.light, color: colors.charcoal, text: status };
+      default: return { backgroundColor: colors.light, color: colors.charcoal, text: statusStr || 'Desconocido' };
     }
   };
 
   const renderBooking = ({ item }) => {
-    const statusObj = getStatusStyles(item.status);
-    const dateStr = item.activityDate ? new Date(item.activityDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    // Backend DTO field is "status" (not "statusName")
+    const statusStr = item.status || item.statusName || '';
+    const statusObj = getStatusStyles(statusStr);
+    // Backend DTO field is "activityDate" (ISO datetime), not slotDate+slotStartTime
+    const dateStr = item.activityDate
+      ? new Date(item.activityDate).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })
+      : '';
 
     return (
       <View style={styles.card}>
@@ -90,14 +103,14 @@ export default function MyBookingsScreen() {
         <Text style={styles.date}>{dateStr}</Text>
 
         <View style={styles.cardFooter}>
-          <Text style={styles.totalAmount}>${item.totalAmount.toFixed(2)} {item.currency}</Text>
+          <Text style={styles.totalAmount}>${item.totalAmount?.toFixed(2)} {item.currency || item.currencyCode}</Text>
           <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-            {item.status === 'Pending' && (
+            {statusStr === 'Pending' && (
               <TouchableOpacity style={styles.continuePayBtn} onPress={() => handleContinuePayment(item)}>
                 <Text style={styles.continuePayText}>Continuar Pago</Text>
               </TouchableOpacity>
             )}
-            {(item.status === 'Confirmed' || item.status === 'Pending') && (
+            {(statusStr === 'Confirmed' || statusStr === 'Pending') && (
               <TouchableOpacity onPress={() => handleCancel(item.bookingId)}>
                 <Text style={styles.cancelText}>Cancelar</Text>
               </TouchableOpacity>
