@@ -6,6 +6,7 @@ using Microservicios.Atracciones.Catalog.DataManagement;
 using Microservicios.Atracciones.Catalog.Business;
 using Asp.Versioning;
 using Microservicios.Atracciones.Catalog.API.Middleware;
+using MassTransit;
 
 
 
@@ -20,6 +21,22 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddDataManagementServices();
 builder.Services.AddBusinessServices();
+
+// ======================================================
+// EVENT BUS (MassTransit + RabbitMQ / CloudAMQP) — SOLO PUBLISHER
+// Catalog publica AttractionCreatedEvent al crear una atracción. No tiene colas ni
+// consumers. La conexión sale de RabbitMq:ConnectionString (env var RabbitMq__ConnectionString).
+// ======================================================
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitConnection = builder.Configuration["RabbitMq:ConnectionString"]
+            ?? throw new InvalidOperationException("Falta la configuración RabbitMq:ConnectionString.");
+        cfg.Host(new Uri(rabbitConnection));
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 // ======================================================
 // 2. CONFIGURACIÃ“N API & CORS

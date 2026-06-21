@@ -7,6 +7,9 @@ using Microservicios.Atracciones.Catalog.DataAccess.Entities;
 using Microservicios.Atracciones.Catalog.DataManagement.Interfaces;
 using Microservicios.Atracciones.Catalog.DataManagement.Models;
 using Microservicios.Atracciones.Catalog.DataAccess.Repositories.Interfaces;
+using Microservicios.Atracciones.Shared.Contracts.Events;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace Microservicios.Atracciones.Catalog.Business.Services;
 
@@ -15,12 +18,16 @@ public class AttractionService : IAttractionService
     private readonly IAttractionDataService _attractionData;
     private readonly IInventoryDataService _inventoryData;
     private readonly IUnitOfWork _uow;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ILogger<AttractionService> _logger;
 
-    public AttractionService(IAttractionDataService attractionData, IInventoryDataService inventoryData, IUnitOfWork uow)
+    public AttractionService(IAttractionDataService attractionData, IInventoryDataService inventoryData, IUnitOfWork uow, IPublishEndpoint publishEndpoint, ILogger<AttractionService> logger)
     {
         _attractionData = attractionData;
         _inventoryData = inventoryData;
         _uow = uow;
+        _publishEndpoint = publishEndpoint;
+        _logger = logger;
     }
 
     public async Task<PagedResult<AttractionSummaryResponse>> SearchAsync(AttractionSearchRequest request)
@@ -117,7 +124,12 @@ public class AttractionService : IAttractionService
             Slug = GenerateSlug(request.Name)
         };
 
-        return await _attractionData.AddAttractionAsync(attraction);
+        var newId = await _attractionData.AddAttractionAsync(attraction);
+
+        // Tiempo real (fire-and-forget): aún no tiene modalidades, así que precio = 0.
+        await PublishAttractionCreatedAsync(attraction, startingPrice: 0m);
+
+        return newId;
     }
 
     public async Task<Guid> CreateCompleteAsync(CreateCompleteAttractionRequest request, Guid userId, bool isAdmin)
@@ -182,7 +194,40 @@ public class AttractionService : IAttractionService
         await _uow.Attractions.AddAsync(attraction);
         await _uow.CompleteAsync();
 
+        // Precio inicial = la tarifa más barata entre todas las modalidades creadas.
+        var startingPrice = request.Products
+            .SelectMany(p => p.PriceTiers)
+            .Select(pt => pt.Price)
+            .DefaultIfEmpty(0m)
+            .Min();
+
+        await PublishAttractionCreatedAsync(attraction, startingPrice);
+
         return attraction.Id;
+    }
+
+    /// <summary>
+    /// Publica <see cref="AttractionCreatedEvent"/> en el bus (fire-and-forget). El Gateway lo
+    /// consume y hace broadcast por SignalR para que la app móvil muestre la atracción sin recargar.
+    /// Un fallo del broker NO debe afectar la creación de la atracción (solo se registra).
+    /// </summary>
+    private async Task PublishAttractionCreatedAsync(Attraction attraction, decimal startingPrice)
+    {
+        try
+        {
+            await _publishEndpoint.Publish(new AttractionCreatedEvent(
+                attraction.Id,
+                attraction.Name,
+                null,               // LocationName: la app lo resuelve por el detalle (slug)
+                attraction.ImageUrl,
+                startingPrice,
+                attraction.Slug,
+                DateTime.UtcNow));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "No se pudo publicar AttractionCreatedEvent para AttractionId {AttractionId}", attraction.Id);
+        }
     }
 
     public async Task<bool> UpdateAsync(Guid id, UpdateAttractionRequest request, Guid userId, bool isAdmin)

@@ -6,6 +6,7 @@ on:
     paths:
       - 'Microservicios.Atracciones.Catalog/**'
       - 'Microservicios.Atracciones.Shared.gRPC/**'
+      - 'Microservicios.Atracciones.Shared.Contracts/**'
       - '.github/workflows/build-catalog.yml'
   workflow_dispatch:
 

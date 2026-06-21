@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'Microservicios.Atracciones.Gateway.API/**'
+      - 'Microservicios.Atracciones.Shared.Contracts/**'
       - '.github/workflows/build-gateway.yml'
   workflow_dispatch:
 

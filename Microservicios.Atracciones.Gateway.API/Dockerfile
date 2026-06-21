@@ -8,6 +8,7 @@ WORKDIR /src
 
 # Copiar los archivos de proyecto
 COPY ["Microservicios.Atracciones.Gateway.API/Microservicios.Atracciones.Gateway.API.csproj", "Microservicios.Atracciones.Gateway.API/"]
+COPY ["Microservicios.Atracciones.Shared.Contracts/Microservicios.Atracciones.Shared.Contracts.csproj", "Microservicios.Atracciones.Shared.Contracts/"]
 
 # Restaurar dependencias
 RUN dotnet restore "Microservicios.Atracciones.Gateway.API/Microservicios.Atracciones.Gateway.API.csproj"

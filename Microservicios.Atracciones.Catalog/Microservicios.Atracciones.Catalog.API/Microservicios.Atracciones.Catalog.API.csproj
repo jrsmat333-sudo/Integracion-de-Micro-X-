@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
+    <PackageReference Include="MassTransit" Version="8.5.10" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -24,6 +26,7 @@
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.DataManagement\Microservicios.Atracciones.Catalog.DataManagement.csproj" />
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.DataAccess\Microservicios.Atracciones.Catalog.DataAccess.csproj" />
     <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.gRPC\Microservicios.Atracciones.Shared.gRPC.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.Contracts\Microservicios.Atracciones.Shared.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using MassTransit;
+using Microservicios.Atracciones.Gateway.API.Consumers;
+using Microservicios.Atracciones.Gateway.API.GraphQL;
+using Microservicios.Atracciones.Gateway.API.Realtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,9 +28,44 @@ builder.Services.AddCors(options =>
         policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
 
+// IHttpContextAccessor: lo usan los resolvers GraphQL para reenviar el JWT entrante (myBookings).
+builder.Services.AddHttpContextAccessor();
+
+// ── GraphQL (HotChocolate) — SOLO LECTURA para la app móvil. Se mapea en /graphql.
+//    Las escrituras siguen por REST; aquí no hay mutations.
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
+
+// ── SignalR — Hub de tiempo real en /hub/notifications (WebSockets).
+builder.Services.AddSignalR();
+
+// ── Event Bus (MassTransit + RabbitMQ): el Gateway CONSUME eventos y los reenvía por SignalR.
+//    Cada consumer tiene su propia cola (fan-out por exchange), independiente de Billing.
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<AttractionCreatedConsumer>();
+    x.AddConsumer<BookingConfirmedConsumer>();
+    x.AddConsumer<PaymentApprovedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitConnection = builder.Configuration["RabbitMq:ConnectionString"]
+            ?? throw new InvalidOperationException("Falta la configuración RabbitMq:ConnectionString.");
+        cfg.Host(new Uri(rabbitConnection));
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 var app = builder.Build();
 
 app.UseCors("AllowAll");
+
+// -----------------------------------------------------------------------------
+// TIEMPO REAL Y GRAPHQL (Fase 3) — rutas propias, no chocan con YARP ni los BFF.
+// -----------------------------------------------------------------------------
+app.MapGraphQL("/graphql");                          // GraphQL de lectura (app móvil)
+app.MapHub<NotificationsHub>("/hub/notifications");   // SignalR (avisos en tiempo real)
 
 // -----------------------------------------------------------------------------
 // ENDPOINT AGREGADOR (BFF): Detalle + Opciones + Disponibilidad

@@ -13,11 +13,13 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="MassTransit.Abstractions" Version="8.5.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.DataAccess\Microservicios.Atracciones.Catalog.DataAccess.csproj" />
     <ProjectReference Include="..\Microservicios.Atracciones.Catalog.DataManagement\Microservicios.Atracciones.Catalog.DataManagement.csproj" />
+    <ProjectReference Include="..\..\Microservicios.Atracciones.Shared.Contracts\Microservicios.Atracciones.Shared.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

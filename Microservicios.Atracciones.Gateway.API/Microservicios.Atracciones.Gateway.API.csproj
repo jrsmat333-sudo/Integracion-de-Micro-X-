@@ -9,6 +9,13 @@
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="16.2.0" />
+    <PackageReference Include="MassTransit" Version="8.5.10" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microservicios.Atracciones.Shared.Contracts\Microservicios.Atracciones.Shared.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

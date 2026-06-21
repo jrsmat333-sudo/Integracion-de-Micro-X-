@@ -12,6 +12,7 @@ COPY ["Microservicios.Atracciones.Catalog/Microservicios.Atracciones.Catalog.Bus
 COPY ["Microservicios.Atracciones.Catalog/Microservicios.Atracciones.Catalog.DataAccess/Microservicios.Atracciones.Catalog.DataAccess.csproj", "Microservicios.Atracciones.Catalog/Microservicios.Atracciones.Catalog.DataAccess/"]
 COPY ["Microservicios.Atracciones.Catalog/Microservicios.Atracciones.Catalog.DataManagement/Microservicios.Atracciones.Catalog.DataManagement.csproj", "Microservicios.Atracciones.Catalog/Microservicios.Atracciones.Catalog.DataManagement/"]
 COPY ["Microservicios.Atracciones.Shared.gRPC/Microservicios.Atracciones.Shared.gRPC.csproj", "Microservicios.Atracciones.Shared.gRPC/"]
+COPY ["Microservicios.Atracciones.Shared.Contracts/Microservicios.Atracciones.Shared.Contracts.csproj", "Microservicios.Atracciones.Shared.Contracts/"]
 
 # Restaurar dependencias
 RUN dotnet restore "Microservicios.Atracciones.Catalog/Microservicios.Atracciones.Catalog.API/Microservicios.Atracciones.Catalog.API.csproj"
