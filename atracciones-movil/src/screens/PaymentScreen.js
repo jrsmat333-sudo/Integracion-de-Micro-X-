@@ -65,7 +65,7 @@ export default function PaymentScreen() {
       };
 
       const payRes = await createPayment(payload);
-      const paymentId = payRes.data?.paymentId || payRes.paymentId;
+      const paymentId = payRes.data?.id || payRes.id || payRes.data?.paymentId || payRes.paymentId;
 
       let paymentConfirmed = false;
 

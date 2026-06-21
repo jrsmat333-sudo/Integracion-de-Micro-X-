@@ -189,7 +189,7 @@ public class BookingIntegrationService : IBookingIntegrationService
             UserId = resolvedUserId,
             AttractionId = request.AttractionId,
             SlotId = slot.Id,
-            StatusId = 2, // Confirmed
+            StatusId = 1, // Pending
             TotalAmount = Math.Round(totalAmount, 2),
             CurrencyCode = currency,
             CreatedAt = DateTime.UtcNow,
