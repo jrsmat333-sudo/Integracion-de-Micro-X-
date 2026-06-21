@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as Crypto from 'expo-crypto';
 
 import colors from '../theme/colors';
 import typography from '../theme/typography';
@@ -57,6 +58,11 @@ export default function MyBookingsScreen() {
     );
   };
 
+  const handleContinuePayment = (item) => {
+    const idempotencyKey = Crypto.randomUUID();
+    navigation.navigate('Payment', { booking: item, idempotencyKey });
+  };
+
   const getStatusStyles = (status) => {
     switch (status) {
       case 'Pending': return { backgroundColor: '#FEF3C7', color: '#92400E', text: 'Pendiente' };
@@ -85,11 +91,18 @@ export default function MyBookingsScreen() {
 
         <View style={styles.cardFooter}>
           <Text style={styles.totalAmount}>${item.totalAmount.toFixed(2)} {item.currency}</Text>
-          {(item.status === 'Confirmed' || item.status === 'Pending') && (
-            <TouchableOpacity onPress={() => handleCancel(item.bookingId)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </TouchableOpacity>
-          )}
+          <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+            {item.status === 'Pending' && (
+              <TouchableOpacity style={styles.continuePayBtn} onPress={() => handleContinuePayment(item)}>
+                <Text style={styles.continuePayText}>Continuar Pago</Text>
+              </TouchableOpacity>
+            )}
+            {(item.status === 'Confirmed' || item.status === 'Pending') && (
+              <TouchableOpacity onPress={() => handleCancel(item.bookingId)}>
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
     );
@@ -159,7 +172,22 @@ const styles = StyleSheet.create({
   date: { fontFamily: typography.body, fontSize: 14, color: colors.charcoal, marginBottom: 12 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: colors.light, paddingTop: 12 },
   totalAmount: { fontFamily: typography.bodySemiBold, fontSize: 16, color: colors.charcoal },
-  cancelText: { fontFamily: typography.bodyMedium, color: colors.status.cancelled, fontSize: 14 },
+  cancelText: {
+    fontFamily: typography.bodyMedium,
+    color: colors.status.cancelled,
+    fontSize: 14,
+  },
+  continuePayBtn: {
+    backgroundColor: colors.forest,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  continuePayText: {
+    fontFamily: typography.bodySemiBold,
+    color: colors.white,
+    fontSize: 13,
+  },
   
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   emptyTitle: { fontFamily: typography.heading, fontSize: 24, color: colors.charcoal, marginTop: 16, marginBottom: 8 },

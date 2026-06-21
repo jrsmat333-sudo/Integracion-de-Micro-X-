@@ -95,7 +95,8 @@ export default function PaymentScreen() {
       await updatePaymentStatus(paymentId, {
         statusId: 2, // Approved
         transactionExternalId: extId,
-        gatewayResponse: 'approved'
+        gatewayResponse: 'approved',
+        correlationId: idempotencyKey
       });
       navigation.replace('BookingSuccess', { 
         booking, 

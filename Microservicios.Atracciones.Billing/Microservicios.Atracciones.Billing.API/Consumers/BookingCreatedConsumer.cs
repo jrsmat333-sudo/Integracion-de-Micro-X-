@@ -71,14 +71,8 @@ public class BookingCreatedConsumer : IConsumer<BookingCreatedEvent>
 
         await _billingService.CrearFacturaAsync(invoiceRequest);
 
-        // 3. (Fase 2.4) Publicar la confirmación. El Gateway la consumirá en Fase 3 para avisar
-        //    al cliente por SignalR. En Fase 2 solo se PUBLICA; aún no hay consumidor.
-        await context.Publish(new PaymentApprovedEvent(
-            msg.BookingId,
-            msg.CorrelationId,
-            msg.TotalAmount,
-            msg.CurrencyCode,
-            DateTime.UtcNow));
+        // 3. (Fase 2.4 / Rediseño) La confirmación del pago ya NO se publica automáticamente aquí.
+        //    Se publicará de forma real cuando el Payment cambie a estado 2 (Succeeded) en el PaymentService.
 
         // 4. Marcar el mensaje como procesado (commit final).
         if (messageId != Guid.Empty)
@@ -92,6 +86,6 @@ public class BookingCreatedConsumer : IConsumer<BookingCreatedEvent>
             await _uow.CompleteAsync();
         }
 
-        _logger.LogInformation("Factura generada y PaymentApprovedEvent publicado para BookingId {BookingId}.", msg.BookingId);
+        _logger.LogInformation("Factura generada para BookingId {BookingId}.", msg.BookingId);
     }
 }

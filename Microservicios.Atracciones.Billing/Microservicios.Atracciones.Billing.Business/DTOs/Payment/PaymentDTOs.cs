@@ -40,6 +40,7 @@ public class UpdatePaymentStatusRequest
     
     public string? TransactionExternalId { get; set; }
     public string? GatewayResponse { get; set; }
+    public string? CorrelationId { get; set; }
 }
 
 public class ProcessRefundRequest

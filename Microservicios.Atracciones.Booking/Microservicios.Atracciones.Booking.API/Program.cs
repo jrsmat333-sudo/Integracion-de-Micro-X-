@@ -7,6 +7,7 @@ using Microservicios.Atracciones.Booking.Business;
 using Microservicios.Atracciones.Booking.API.Middleware;
 using Microsoft.OpenApi.Models;
 using MassTransit;
+using Microservicios.Atracciones.Booking.API.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,13 +28,15 @@ builder.Services.AddGrpcClient<Microservicios.Atracciones.Shared.gRPC.CatalogSer
 // es seguro reintentarla. El handler estándar aporta Retry (3 intentos con backoff
 // exponencial), Circuit Breaker y Timeout ante micro-cortes de red contra Catalog.
 .AddStandardResilienceHandler();
-
 // ── Event Bus (MassTransit + RabbitMQ / CloudAMQP) ──
 // Booking es PUBLISHER: al crear una reserva publica BookingCreatedEvent y Billing lo
 // consume de forma asíncrona (reemplaza la antigua llamada gRPC síncrona a Billing).
+// Booking es CONSUMER: escucha PaymentApprovedEvent para actualizar el estado de reserva a Confirmado.
 // La conexión sale de RabbitMq:ConnectionString (env var RabbitMq__ConnectionString en Azure).
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<PaymentApprovedConsumer>();
+    
     x.UsingRabbitMq((context, cfg) =>
     {
         var rabbitConnection = builder.Configuration["RabbitMq:ConnectionString"]

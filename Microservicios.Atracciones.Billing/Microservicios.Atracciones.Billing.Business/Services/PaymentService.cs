@@ -3,16 +3,20 @@ using Microservicios.Atracciones.Billing.Business.DTOs.Payment;
 using Microservicios.Atracciones.Billing.Business.Interfaces;
 using Microservicios.Atracciones.Billing.DataAccess.Repositories.Interfaces;
 using Microservicios.Atracciones.Billing.DataAccess.Entities;
+using MassTransit;
+using Microservicios.Atracciones.Shared.Contracts.Events;
 
 namespace Microservicios.Atracciones.Billing.Business.Services;
 
 public class PaymentService : IPaymentService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public PaymentService(IUnitOfWork uow)
+    public PaymentService(IUnitOfWork uow, IPublishEndpoint publishEndpoint)
     {
         _uow = uow;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<IEnumerable<PaymentResponse>> GetPaymentsByBookingIdAsync(Guid bookingId)
@@ -77,6 +81,18 @@ public class PaymentService : IPaymentService
 
         _uow.Payments.Update(payment);
         await _uow.CompleteAsync();
+
+        if (request.StatusId == 2)
+        {
+            await _publishEndpoint.Publish(new PaymentApprovedEvent(
+                payment.BookingId,
+                request.CorrelationId ?? payment.Id.ToString(), // Usamos IdempotencyKey enviado, o el ID del pago
+                payment.Amount,
+                payment.CurrencyCode,
+                payment.PaidAt ?? DateTime.UtcNow
+            ));
+        }
+
         return true;
     }
 
