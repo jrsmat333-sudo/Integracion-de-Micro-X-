@@ -44,8 +44,10 @@ export default function HomeScreen() {
 
     // SignalR
     const setupSignalR = async () => {
+      console.log('[SignalR] Iniciando conexión desde HomeScreen...');
       await startConnection();
-      onAttractionCreated(() => {
+      onAttractionCreated((data) => {
+        console.log('[SignalR] 🚀 Evento OnAttractionCreated recibido!', data);
         refetch();
         loadTopAttractions();
       });

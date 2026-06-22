@@ -277,10 +277,29 @@ public class AttractionService : IAttractionService
 
         if (!isAdmin && attraction.ManagedById != userId) return false;
 
+        var wasPublished = attraction.IsPublished;
         attraction.IsPublished = isPublished;
         attraction.UpdatedAt = DateTime.UtcNow;
 
-        return await _uow.CompleteAsync() > 0;
+        var saved = await _uow.CompleteAsync() > 0;
+
+        // Si la atracción pasó de no publicada a publicada, notificar vía SignalR
+        if (saved && !wasPublished && isPublished)
+        {
+            var fullAttraction = await _attractionData.GetFullByIdAsync(id);
+
+            // Calcular startingPrice de las modalidades existentes
+            var startingPrice = fullAttraction?.ProductOptions?
+                .SelectMany(p => p.PriceTiers)
+                .Select(pt => pt.Price)
+                .DefaultIfEmpty(0m)
+                .Min() ?? 0m;
+
+            await PublishAttractionCreatedAsync(fullAttraction ?? attraction, startingPrice);
+            _logger.LogInformation("Atracción {AttractionId} publicada y evento SignalR disparado.", id);
+        }
+
+        return saved;
     }
 
     public async Task<bool> ToggleActiveAsync(Guid id, bool isActive, Guid userId, bool isAdmin)
